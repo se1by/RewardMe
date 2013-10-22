@@ -1,0 +1,30 @@
+name:  RewardMe
+version:  3.0
+description:  Rewards!
+author:  se1by
+website:  http://www.bitbyterstudios.com
+softdepend: [Votifier]
+
+main:  com.bitbyterstudios.RewardMe.RewardMe
+
+commands:
+  reward:
+    description:  Buy
+    usage:  /<command>
+  points:
+    description:  points
+    usage:  /<command>
+  rewards:
+    description: rewards
+    usage:  /<command>
+  generateredeem:
+    description: generate redeemcode
+    usage: /<command> <name> <expirationdate>
+    aliases: genred
+  useredeem:
+    description: use redeemcode
+    usage: /<command> <code>
+    aliases: usered
+  rewardme:
+    description: help
+    usage: /<command>
