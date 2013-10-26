@@ -1,5 +1,6 @@
 package com.bitbyterstudios.RewardMe;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -8,6 +9,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 public class Redeem {
@@ -44,14 +46,15 @@ public class Redeem {
 		FileConfiguration redeemCfg = plugin.getRedeemConfig();
 
 		String date = redeemCfg.getString(name + ".Expiration");
-		if(date == null){
+		if (date == null) {
 			return "unknown";
-		} else if(date.equalsIgnoreCase("once")){
+		} else if(date.equalsIgnoreCase("once")) {
 			String cmd = redeemCfg.getString(name + ".Command");
 			redeemCfg.set(name, null);
 			plugin.saveRedeemConfig();
 			return cmd;
 		}
+		
 		DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 		Date today = Calendar.getInstance().getTime();
 		Date todayFormat = null;
@@ -87,15 +90,13 @@ public class Redeem {
 		int year = cal.get(Calendar.YEAR);
 		int maxDays;
 		
-		if(month %2 == 0){
-			if(month == 2){
+		if (month %2 == 0) {
+			if (month == 2) {
 				maxDays = 29;
-			}
-			else{
+			} else {
 				maxDays = 30;
 			}
-		}
-		else{
+		} else {
 			maxDays = 31;
 		}
 
@@ -111,12 +112,12 @@ public class Redeem {
 			exMonth = exMonth - 12;
 			exYear++;
 		}
-		String date = exDay + "/" + exMonth + "/" + exYear;
+		String date = new StringBuilder(exDay).append("/").append(exMonth).append("/").append(exYear).toString();
 		return date;
 	}
 
 	public static String getName(UUID code){
-		FileConfiguration redeemCfg = RewardMe.plugin.getRedeemConfig();
+		FileConfiguration redeemCfg = YamlConfiguration.loadConfiguration(new File("plugins/RewardMe/redeem.yml"));
 		for (String key : redeemCfg.getKeys(false)) {
 			if (redeemCfg.getString(key + ".Code").equals(code.toString())) {
 				return key;

@@ -10,13 +10,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class PListener implements Listener {
+public class PlayerListener implements Listener {
 	
 	private RewardMe plugin;
 	private int date;
 	private HashMap<String, Boolean> loggedIn;
 	
-	public PListener(RewardMe plugin){
+	public PlayerListener(RewardMe plugin){
 		this.plugin = plugin;
 		date = Calendar.getInstance().get(5);
 		loggedIn = new HashMap<String, Boolean>();
@@ -26,17 +26,17 @@ public class PListener implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
 		
-		if(!player.hasPermission("RewardMe.Daily")){
+		if (!player.hasPermission("RewardMe.Daily")) {
 			return;
 		}
-		if(!plugin.getConfig().getBoolean("DailyLogin.Enabled")){
+		if (!plugin.getConfig().getBoolean("DailyLogin.Enabled")) {
 			return;
 		}
 		
 		int lastLogin = plugin.getPlayersConfig().
 				getInt(player.getName() + "LastLogin");
 		
-		if(lastLogin == date){
+		if (lastLogin == date) {
 			return;
 		}
 		

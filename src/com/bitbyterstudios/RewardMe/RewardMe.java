@@ -15,7 +15,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class RewardMe extends JavaPlugin {
 	
-	protected static RewardMe plugin;
 	private static Logger logger;
 	private FileConfiguration players;
 	private FileConfiguration points;
@@ -27,7 +26,6 @@ public class RewardMe extends JavaPlugin {
 	private File rewardsFile;
 	
 	public void onEnable(){
-		RewardMe.plugin = this;
 		RewardMe.logger = getLogger();
 		
 		saveDefaultConfig();
@@ -40,9 +38,9 @@ public class RewardMe extends JavaPlugin {
 		getCommand("generateredeem").setExecutor(cmdExec);
 		getCommand("useredeem").setExecutor(cmdExec);
 		
-		getServer().getPluginManager().registerEvents(new BListener(this), this);
-		getServer().getPluginManager().registerEvents(new EListener(this), this);
-		getServer().getPluginManager().registerEvents(new PListener(this), this);	
+		getServer().getPluginManager().registerEvents(new BlockListener(this), this);
+		getServer().getPluginManager().registerEvents(new EntityListener(this), this);
+		getServer().getPluginManager().registerEvents(new PlayerListener(this), this);	
 		
 		try {
 			Metrics metrics = new Metrics(this);
@@ -53,9 +51,9 @@ public class RewardMe extends JavaPlugin {
 	}
 	
 	public FileConfiguration getPlayersConfig(){
-		if(players == null){
+		if (players == null) {
 			playersFile = new File(getDataFolder(), "players.yml");
-			if(!playersFile.exists()){
+			if (!playersFile.exists()) {
 				saveResource("players.yml", false);
 			}
 			players = YamlConfiguration.loadConfiguration(playersFile);
@@ -73,9 +71,9 @@ public class RewardMe extends JavaPlugin {
 	}
 	
 	public FileConfiguration getPointsConfig(){
-		if(points == null){
+		if (points == null) {
 			pointsFile = new File(getDataFolder(), "points.yml");
-			if(!pointsFile.exists()){
+			if (!pointsFile.exists()) {
 				saveResource("points.yml", false);
 			}
 			points = YamlConfiguration.loadConfiguration(pointsFile);
@@ -93,7 +91,7 @@ public class RewardMe extends JavaPlugin {
 	}
 	
 	public FileConfiguration getRedeemConfig(){
-		if(redeem == null){
+		if (redeem == null) {
 			redeemFile = new File(getDataFolder(), "redeem.yml");
 			if(!redeemFile.exists()){
 				saveResource("redeem.yml", false);
@@ -113,7 +111,7 @@ public class RewardMe extends JavaPlugin {
 	}
 	
 	public FileConfiguration getRewardsConfig(){
-		if(rewards == null){
+		if (rewards == null) {
 			rewardsFile = new File(getDataFolder(), "rewards.yml");
 			if(!rewardsFile.exists()){
 				saveResource("rewards.yml", false);
@@ -140,7 +138,6 @@ public class RewardMe extends JavaPlugin {
 		try{
 			String[] cmdSplit = commands.split(",,");
 			for (String command : cmdSplit) {
-				System.out.println(command);
 				CommandSender cs = Bukkit.getServer().getConsoleSender();
 			    Bukkit.getServer().dispatchCommand(cs, command);
 			}
@@ -152,7 +149,7 @@ public class RewardMe extends JavaPlugin {
 	}
 	
 	public static void sendMessage(CommandSender sender, String msg){
-		sender.sendMessage(ChatColor.GREEN + "[RewardMe] " + ChatColor.GOLD + msg);
+		sender.sendMessage(new StringBuilder(25).append(ChatColor.GREEN).append("[RewardMe] ").append(ChatColor.GOLD).append(msg).toString());
 	}
 	
 	public static void info(String msg){

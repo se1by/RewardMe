@@ -5,17 +5,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
-public class BListener implements Listener {
+public class BlockListener implements Listener {
 	
 	private RewardMe plugin;
 	
-	public BListener(RewardMe plugin){
+	public BlockListener(RewardMe plugin){
 		this.plugin = plugin;
 	}
 	
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event){
-		if(!plugin.getConfig().getBoolean("MiningReward.Enabled")){
+		if (!plugin.getConfig().getBoolean("MiningReward.Enabled")) {
 			return;
 		}
 		

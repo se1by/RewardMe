@@ -63,10 +63,8 @@ public class CmdExecutor implements CommandExecutor {
 		int pPoints = plugin.getPointsConfig().getInt(toShow);
 		if ((pPoints == 1) || (pPoints == -1)) {
 			RewardMe.sendMessage(sendTo,pre + " got " + pPoints + " point");
-		} else if ((pPoints != 1) || (pPoints != -1)) {
-			RewardMe.sendMessage(sendTo,pre + " got " + pPoints + " points");
 		} else {
-			RewardMe.sendMessage(sendTo, "I don't know this player!");
+			RewardMe.sendMessage(sendTo,pre + " got " + pPoints + " points");
 		}
 	}
 
@@ -134,11 +132,11 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void handleGenRedeem(CommandSender sender, String[] args) {
-		if(!((args.length == 2) && (sender.hasPermission("RewardMe.Redeem")))){
+		if (!((args.length == 2) && (sender.hasPermission("RewardMe.Redeem")))) {
 			return;
 		}
 		String name = args[0];
-		if(plugin.getRedeemConfig().contains(name)){
+		if (plugin.getRedeemConfig().contains(name)) {
 			RewardMe.sendMessage(sender, "This name is already taken!");
 			return;
 		}
@@ -155,7 +153,7 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void handleUseRedeem(CommandSender sender, String[] args) {
-		if(args.length != 1){
+		if (args.length != 1) {
 			return;
 		}
 		if (sender instanceof Player) {

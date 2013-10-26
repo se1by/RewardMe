@@ -13,7 +13,7 @@ public class VotifierListener implements Listener{
 	}
 	
 	public void voteMade(VotifierEvent event) {
-		if(!plugin.getConfig().getBoolean("Vote.Enabled")){
+		if (!plugin.getConfig().getBoolean("Vote.Enabled")) {
 			return;
 		}
 		String user = event.getVote().getUsername();
