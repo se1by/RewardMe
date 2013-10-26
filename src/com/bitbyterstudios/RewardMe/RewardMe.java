@@ -15,7 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class RewardMe extends JavaPlugin {
 	
-	public static RewardMe plugin;
+	protected static RewardMe plugin;
 	private static Logger logger;
 	private FileConfiguration players;
 	private FileConfiguration points;
@@ -27,8 +27,8 @@ public class RewardMe extends JavaPlugin {
 	private File rewardsFile;
 	
 	public void onEnable(){
-		plugin = this;
-		logger = getLogger();
+		RewardMe.plugin = this;
+		RewardMe.logger = getLogger();
 		
 		saveDefaultConfig();
 		
@@ -43,6 +43,13 @@ public class RewardMe extends JavaPlugin {
 		getServer().getPluginManager().registerEvents(new BListener(this), this);
 		getServer().getPluginManager().registerEvents(new EListener(this), this);
 		getServer().getPluginManager().registerEvents(new PListener(this), this);	
+		
+		try {
+			Metrics metrics = new Metrics(this);
+			metrics.start();
+		} catch (IOException e) {
+			//Metrics disabled?
+		}
 	}
 	
 	public FileConfiguration getPlayersConfig(){

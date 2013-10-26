@@ -22,7 +22,7 @@ public class EListener implements Listener {
 		
 		LivingEntity le = event.getEntity();
 		
-		if(!(le.getKiller() instanceof Player)){
+		if(le.getKiller() == null){
 			return;
 		}
 		
