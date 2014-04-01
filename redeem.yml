@@ -1,6 +1,0 @@
-test:
-  Code: 0863ee04-8762-458c-a110-3d07604c56a9
-  Expiration: 24/7/2016
-  Command: give %USER 1 1
-  UsedBy:
-    se1by: true
