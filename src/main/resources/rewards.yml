@@ -1,0 +1,4 @@
+TestReward:
+  Command: give %USER diamond 1
+  Price: 10
+  Description: 1 diamond

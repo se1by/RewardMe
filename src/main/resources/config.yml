@@ -1,0 +1,14 @@
+DailyLogin:
+  Enabled: true
+  Command: give %USER log 10
+  Message: Have fun with your 10 log, %USER :D
+MiningReward:
+  Enabled: true
+  DIRT:
+    NeededBlocks: 10
+    Command: give %USER log 22
+KillReward:
+  Enabled: true
+  Sheep:
+    NeededKills: 1
+    Command: give %USER dirt 3
