@@ -1,13 +1,15 @@
-package com.bitbyterstudios.RewardMe;
+package com.bitbyterstudios.rewardme;
 
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.*;
 
+import com.evilmidget38.UUIDFetcher;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class CmdExecutor implements CommandExecutor {
 	
@@ -26,12 +28,16 @@ public class CmdExecutor implements CommandExecutor {
 			showRewards(sender);
 		} else if (cmd.getName().equalsIgnoreCase("reward")) {
 			handleReward(sender, args);
-		} else if (cmd.getName().equalsIgnoreCase("generateredeem")){ // removed "|| cmd.getName().equalsIgnoreCase("genred")" for testing (alias working?)
+		} else if (cmd.getName().equalsIgnoreCase("generateredeem")){
 			handleGenRedeem(sender, args);
 		} else if (cmd.getName().equalsIgnoreCase("useredeem")) {
 			handleUseRedeem(sender, args);
 		} else if (cmd.getName().equalsIgnoreCase("rewardme")) {
-			showHelp(sender);
+            if (args.length == 1 && "convert".equalsIgnoreCase(args[0])) {
+                convert(sender);
+            } else {
+                showHelp(sender);
+            }
 		} else {
 			return false;
 		}
@@ -41,10 +47,10 @@ public class CmdExecutor implements CommandExecutor {
 	private void handlePoints(CommandSender sender, String[] args) {
 		if (args.length == 0) {
 			if (sender instanceof Player) {
-				showPoints((Player) sender, sender.getName());
+				showPoints(sender, sender.getName());
 			} else {
-				RewardMe.info("Seems as the console doesn't have any points");
-				RewardMe.info("Poor console :(");
+				plugin.getLogger().info("Seems as the console doesn't have any points");
+				plugin.getLogger().info("Poor console :(");
 			}
 		} else if (args.length == 1) {
 			showPoints(sender, args[0]);
@@ -60,7 +66,12 @@ public class CmdExecutor implements CommandExecutor {
 		if(toShow.equals(sendTo.getName())){
 			pre = "You";
 		}
-		int pPoints = plugin.getPointsConfig().getInt(toShow);
+        UUID toShowUUID = plugin.uuidFromName(toShow);
+        if (toShowUUID == null) {
+            RewardMe.sendMessage(sendTo, toShow + "'s UUID was not cached. Please try again in a few seconds.");
+            return;
+        }
+		int pPoints = plugin.getPointsConfig().getInt(toShowUUID.toString());
 		if ((pPoints == 1) || (pPoints == -1)) {
 			RewardMe.sendMessage(sendTo,pre + " got " + pPoints + " point");
 		} else {
@@ -69,20 +80,27 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void givePoints(CommandSender sender, String userString, int amount) {
-		Player user = Bukkit.getPlayer(userString);
-		int oldPoints = plugin.getPointsConfig().getInt(userString);
+        if (!sender.hasPermission("RewardMe.givePoints") && !sender.isOp()) {
+            RewardMe.sendMessage(sender, "Insufficient permissions!");
+            return;
+        }
+
+        UUID userUUID = plugin.uuidFromName(userString);
+        if (userUUID == null) {
+            RewardMe.sendMessage(sender, userString + "'s UUID was not cached. Please try again in a few seconds.");
+            return;
+        }
+		Player user = Bukkit.getPlayerExact(userString);
+		int oldPoints = plugin.getPointsConfig().getInt(userUUID.toString());
 		int newPoints = oldPoints + amount;
 
-		if ((sender.hasPermission("RewardMe.givePoints")) || (sender.isOp())) {
-			plugin.getPointsConfig().set(userString, newPoints);
-			plugin.savePointsConfig();
+	    plugin.getPointsConfig().set(userUUID.toString(), newPoints);
+		plugin.savePointsConfig();
 			
-			RewardMe.sendMessage(sender, amount + " points given!");
-			RewardMe.sendMessage(user, "You received " + amount
-					+ " points from " + sender.getName());
-		} else {
-			RewardMe.sendMessage(sender, "Insufficient permissions!");
-		}
+		RewardMe.sendMessage(sender, amount + " points given!");
+        if (user != null) {
+            RewardMe.sendMessage(user, "You received " + amount + " points from " + sender.getName());
+        }
 	}
 
 	private void showRewards(CommandSender sender) {
@@ -112,13 +130,13 @@ public class CmdExecutor implements CommandExecutor {
 		String command = plugin.getRewardsConfig().getString(item + ".Command");
 		command = RewardMe.replaceUser(command, player);
 		int price = plugin.getRewardsConfig().getInt(item + ".Price");
-		int pPoints = plugin.getPointsConfig().getInt(player.getName());
+		int pPoints = plugin.getPointsConfig().getInt(player.getUniqueId().toString());
 
 		if (pPoints >= price) {
 			boolean success = RewardMe.executeCmd(command);
 
 			if (success) {
-				plugin.getPointsConfig().set(player.getName(),
+				plugin.getPointsConfig().set(player.getUniqueId().toString(),
 						Integer.valueOf(pPoints - price));
 				plugin.savePointsConfig();
 
@@ -164,7 +182,7 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void useRedeem(Player player, String code) {
-		Redeem redeem = new Redeem(Redeem.getName(UUID.fromString(code)), plugin);
+		Redeem redeem = new Redeem(UUID.fromString(code), plugin);
 		String command = redeem.useCode(player);
 		command = RewardMe.replaceUser(command, player);
 		if (command.equalsIgnoreCase("used")) {
@@ -172,14 +190,14 @@ public class CmdExecutor implements CommandExecutor {
 		} else if (command.equalsIgnoreCase("outdated")) {
 			RewardMe.sendMessage(player, "Outdated code!");
 		} else if (command.equalsIgnoreCase("error")) {
-			RewardMe.sendMessage(player, "An error occured!");
+			RewardMe.sendMessage(player, "An error occurred!");
 			RewardMe.sendMessage(player,  "Please contact an admin!");
 		} else if (command.equalsIgnoreCase("unknown")) {
 			RewardMe.sendMessage(player, "Unknown code!");
 		} else {
 			boolean success = RewardMe.executeCmd(command);
 			if (!success) {
-				RewardMe.sendMessage(player, "An error occured!");
+				RewardMe.sendMessage(player, "An error occurred!");
 			}
 		}
 	}
@@ -195,4 +213,52 @@ public class CmdExecutor implements CommandExecutor {
 		
 	}
 
+    private void convert(final CommandSender sender) {
+        if (!sender.hasPermission("RewardMe.givePoints")) {
+            RewardMe.sendMessage(sender, "Insufficient permissions!");
+            return;
+        }
+
+        Set<String> names = plugin.getPlayersConfig().getKeys(false);
+        names.addAll(plugin.getPointsConfig().getKeys(false));
+        for (String key : plugin.getRedeemConfig().getKeys(false)) {
+            names.addAll(plugin.getRedeemConfig().getConfigurationSection(key + ".UsedBy").getKeys(false));
+        }
+        final UUIDFetcher fetcher = new UUIDFetcher(new ArrayList<String>(names));
+        Bukkit.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    final Map<String, UUID> converted = new HashMap<String, UUID>(fetcher.call());
+                    converted.putAll(fetcher.call());
+                    Bukkit.getScheduler().runTask(plugin, new Runnable() {
+                        @Override
+                        public void run() {
+                            for (String key : plugin.getPlayersConfig().getKeys(false)) {
+                                plugin.getPlayersConfig().set(converted.get(key).toString(), plugin.getPlayersConfig().getConfigurationSection(key));
+                                plugin.getPlayersConfig().set(key, null);
+                            }
+                            for (String key : plugin.getPointsConfig().getKeys(false)) {
+                                plugin.getPointsConfig().set(converted.get(key).toString(), plugin.getPointsConfig().getConfigurationSection(key));
+                                plugin.getPointsConfig().set(key, null);
+                            }
+                            for (String key : plugin.getRedeemConfig().getKeys(false)) {
+                                for (String userKey : plugin.getRedeemConfig().getConfigurationSection(key + ".UsedBy").getKeys(false)) {
+                                    plugin.getRedeemConfig().set(key + ".UsedBy." + converted.get(userKey),
+                                            plugin.getRedeemConfig().getConfigurationSection(key + ".UsedBy." + userKey));
+                                    plugin.getRedeemConfig().set(key + ".UsedBy." + userKey, null);
+                                }
+                            }
+                            plugin.savePlayersConfig();
+                            plugin.savePointsConfig();
+                            plugin.saveRedeemConfig();
+                            RewardMe.sendMessage(sender, "Conversion done!");
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 }

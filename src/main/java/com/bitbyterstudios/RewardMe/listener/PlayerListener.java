@@ -1,8 +1,9 @@
-package com.bitbyterstudios.RewardMe;
+package com.bitbyterstudios.rewardme.listener;
 
 import java.util.Calendar;
 import java.util.HashMap;
 
+import com.bitbyterstudios.rewardme.RewardMe;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -29,12 +30,9 @@ public class PlayerListener implements Listener {
 		if (!player.hasPermission("RewardMe.Daily")) {
 			return;
 		}
-		if (!plugin.getConfig().getBoolean("DailyLogin.Enabled")) {
-			return;
-		}
 		
 		int lastLogin = plugin.getPlayersConfig().
-				getInt(player.getName() + "LastLogin");
+				getInt(player.getUniqueId().toString() + "LastLogin");
 		
 		if (lastLogin == date) {
 			return;
@@ -64,23 +62,23 @@ public class PlayerListener implements Listener {
 		String cmd = plugin.getConfig().getString("DailyLogin.Command");
 		if (cmd == null) {
 			cmd = "give %USER log 10";
-			RewardMe.warn("You enabled the daily login reward, but didn't set a command!");
-			RewardMe.warn("Please set a command at \"DailyLogin\" -> \"Command\"");
+			plugin.getLogger().warning("You enabled the daily login reward, but didn't set a command!");
+			plugin.getLogger().warning("Please set a command at \"DailyLogin\" -> \"Command\"");
 		}
 		cmd = RewardMe.replaceUser(cmd, player);
 		
 		String message = plugin.getConfig().getString("DailyLogin.Message");
 		if (message == null) {
 			message = "LoginReward given!";
-			RewardMe.warn("You enabled the daily login reward, but didn't set a message!");
-			RewardMe.warn("Please set an command at \"DailyLogin\" -> \"Message\"");
+            plugin.getLogger().warning("You enabled the daily login reward, but didn't set a message!");
+            plugin.getLogger().warning("Please set an command at \"DailyLogin\" -> \"Message\"");
 		}
 		message = RewardMe.replaceUser(message, player);
 		
 		RewardMe.executeCmd(cmd);
 		RewardMe.sendMessage(player, message);
 		
-		plugin.getPlayersConfig().set(player.getName() + ".LastLogin", date);
+		plugin.getPlayersConfig().set(player.getUniqueId().toString() + ".LastLogin", date);
 		plugin.savePlayersConfig();
 	}
 

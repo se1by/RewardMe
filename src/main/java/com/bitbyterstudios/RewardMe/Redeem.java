@@ -1,4 +1,4 @@
-package com.bitbyterstudios.RewardMe;
+package com.bitbyterstudios.rewardme;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -16,11 +16,16 @@ public class Redeem {
 	
 	private String name;
 	private RewardMe plugin;
-	
-	public Redeem(String name, RewardMe plugin){
-		this.name = name;
-		this.plugin = plugin;
-	}
+
+    public Redeem(String name, RewardMe plugin) {
+        this.name = name;
+        this.plugin = plugin;
+    }
+
+    public Redeem(UUID uuid, RewardMe plugin) {
+        this.name = getName(uuid);
+        this.plugin = plugin;
+    }
 
 	public UUID generateCode(String cmd, int duration) {
 		UUID uuid = UUID.randomUUID();
@@ -70,9 +75,9 @@ public class Redeem {
 		}
 		int result = todayFormat.compareTo(expDate);
 
-		if (!redeemCfg.getBoolean(name + ".UsedBy." + p.getName())) {
+		if (!redeemCfg.getBoolean(name + ".UsedBy." + p.getUniqueId().toString())) {
 			if (result <= 0) {
-				redeemCfg.set(name + ".UsedBy." + p.getName(), true);
+				redeemCfg.set(name + ".UsedBy." + p.getUniqueId().toString(), true);
 				plugin.saveRedeemConfig();
 				return redeemCfg.getString(name + ".Command");
 			} else {
@@ -116,8 +121,8 @@ public class Redeem {
 		return date;
 	}
 
-	public static String getName(UUID code){
-		FileConfiguration redeemCfg = YamlConfiguration.loadConfiguration(new File("plugins/RewardMe/redeem.yml"));
+	public String getName(UUID code){
+		FileConfiguration redeemCfg = YamlConfiguration.loadConfiguration(new File("plugins/rewardme/redeem.yml"));
 		for (String key : redeemCfg.getKeys(false)) {
 			if (redeemCfg.getString(key + ".Code").equals(code.toString())) {
 				return key;

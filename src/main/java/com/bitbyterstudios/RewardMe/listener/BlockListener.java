@@ -1,5 +1,6 @@
-package com.bitbyterstudios.RewardMe;
+package com.bitbyterstudios.rewardme.listener;
 
+import com.bitbyterstudios.rewardme.RewardMe;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,13 +16,10 @@ public class BlockListener implements Listener {
 	
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event){
-		if (!plugin.getConfig().getBoolean("MiningReward.Enabled")) {
-			return;
-		}
 		
 		String blockType = event.getBlock().getType().toString();			
-		Player p = event.getPlayer();
-		int minedBlocks = plugin.getPlayersConfig().getInt(p.getName() + ".MinedBlocks."
+		Player player = event.getPlayer();
+		int minedBlocks = plugin.getPlayersConfig().getInt(player.getUniqueId().toString() + ".MinedBlocks."
 				+ blockType) + 1;
 		int neededBlocks = plugin.getConfig().getInt("MiningReward." + blockType
 				+ ".NeededBlocks");
@@ -31,13 +29,13 @@ public class BlockListener implements Listener {
 					+ ".Command");
 
 			if (command != null) {
-				command = RewardMe.replaceUser(command, p);
+				command = RewardMe.replaceUser(command, player);
 				RewardMe.executeCmd(command);
 				plugin.getPlayersConfig().set(
-						p.getName() + ".MinedBlocks." + blockType, 0);
+						player.getUniqueId().toString() + ".MinedBlocks." + blockType, 0);
 			}
 		} else {
-			plugin.getPlayersConfig().set(p.getName() + ".MinedBlocks." + blockType,
+			plugin.getPlayersConfig().set(player.getUniqueId().toString() + ".MinedBlocks." + blockType,
 					minedBlocks);
 		}
 		

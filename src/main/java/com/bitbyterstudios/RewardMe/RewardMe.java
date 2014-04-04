@@ -1,10 +1,17 @@
-package com.bitbyterstudios.RewardMe;
+package com.bitbyterstudios.rewardme;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.bitbyterstudios.rewardme.listener.BlockListener;
+import com.bitbyterstudios.rewardme.listener.EntityListener;
+import com.bitbyterstudios.rewardme.listener.PlayerListener;
+import com.bitbyterstudios.rewardme.listener.VotifierListener;
+import com.evilmidget38.UUIDFetcher;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -15,19 +22,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class RewardMe extends JavaPlugin {
 	
-	private static Logger logger;
 	private FileConfiguration players;
 	private FileConfiguration points;
 	private FileConfiguration redeem;
 	private FileConfiguration rewards;
+    private FileConfiguration nameConverter;
 	private File playersFile;
 	private File pointsFile;
 	private File redeemFile;
 	private File rewardsFile;
+    private File nameConverterFile;
 	
 	public void onEnable(){
-		RewardMe.logger = getLogger();
-		
 		saveDefaultConfig();
 		
 		CmdExecutor cmdExec = new CmdExecutor(this);
@@ -37,11 +43,20 @@ public class RewardMe extends JavaPlugin {
 		getCommand("rewards").setExecutor(cmdExec);
 		getCommand("generateredeem").setExecutor(cmdExec);
 		getCommand("useredeem").setExecutor(cmdExec);
-		
-		getServer().getPluginManager().registerEvents(new BlockListener(this), this);
-		getServer().getPluginManager().registerEvents(new EntityListener(this), this);
-		getServer().getPluginManager().registerEvents(new PlayerListener(this), this);	
-		
+
+        if (getConfig().getBoolean("MiningReward.Enabled")) {
+            getServer().getPluginManager().registerEvents(new BlockListener(this), this);
+        }
+        if (getConfig().getBoolean("KillReward.Enabled")) {
+            getServer().getPluginManager().registerEvents(new EntityListener(this), this);
+        }
+        if (getConfig().getBoolean("DailyLogin.Enabled")) {
+            getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+        }
+        if (getConfig().getBoolean("Vote.Enabled")) {
+            getServer().getPluginManager().registerEvents(new VotifierListener(this), this);
+        }
+
 		try {
 			Metrics metrics = new Metrics(this);
 			metrics.start();
@@ -66,7 +81,7 @@ public class RewardMe extends JavaPlugin {
             getPlayersConfig().save(playersFile);
 			players = YamlConfiguration.loadConfiguration(playersFile);
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Could not save config to " + playersFile, ex);
+            getLogger().log(Level.SEVERE, "Could not save config to " + playersFile, ex);
         }
 	}
 	
@@ -86,7 +101,7 @@ public class RewardMe extends JavaPlugin {
             getPointsConfig().save(pointsFile);
 			points = YamlConfiguration.loadConfiguration(pointsFile);
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Could not save config to " + pointsFile, ex);
+            getLogger().log(Level.SEVERE, "Could not save config to " + pointsFile, ex);
         }
 	}
 	
@@ -100,35 +115,55 @@ public class RewardMe extends JavaPlugin {
 		}
 		return redeem;
 	}
-	
-	public void saveRedeemConfig(){
-		try {
+
+    public void saveRedeemConfig(){
+        try {
             getRedeemConfig().save(redeemFile);
-			redeem = YamlConfiguration.loadConfiguration(redeemFile);
-		} catch (IOException ex) {
-            logger.log(Level.SEVERE, "Could not save config to " + redeemFile, ex);
-        }
-	}
-	
-	public FileConfiguration getRewardsConfig(){
-		if (rewards == null) {
-			rewardsFile = new File(getDataFolder(), "rewards.yml");
-			if(!rewardsFile.exists()){
-				saveResource("rewards.yml", false);
-			}
-			rewards = YamlConfiguration.loadConfiguration(rewardsFile);
-		}
-		return rewards;
-	}
-	
-	public void saveRewardsConfig(){
-		try {
-            getRewardsConfig().save(rewardsFile);
-			rewards = YamlConfiguration.loadConfiguration(rewardsFile);
+            redeem = YamlConfiguration.loadConfiguration(redeemFile);
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Could not save config to " + rewardsFile, ex);
+            getLogger().log(Level.SEVERE, "Could not save config to " + redeemFile, ex);
         }
-	}
+    }
+
+    public FileConfiguration getRewardsConfig(){
+        if (rewards == null) {
+            rewardsFile = new File(getDataFolder(), "rewards.yml");
+            if(!rewardsFile.exists()){
+                saveResource("rewards.yml", false);
+            }
+            rewards = YamlConfiguration.loadConfiguration(rewardsFile);
+        }
+        return rewards;
+    }
+
+    public void saveRewardsConfig(){
+        try {
+            getRewardsConfig().save(rewardsFile);
+            rewards = YamlConfiguration.loadConfiguration(rewardsFile);
+        } catch (IOException ex) {
+            getLogger().log(Level.SEVERE, "Could not save config to " + rewardsFile, ex);
+        }
+    }
+
+    public FileConfiguration getNameConverterConfig(){
+        if (nameConverter == null) {
+            nameConverterFile = new File(getDataFolder(), "nameConverter.yml");
+            if(!nameConverterFile.exists()){
+                saveResource("nameConverter.yml", false);
+            }
+            nameConverter = YamlConfiguration.loadConfiguration(nameConverterFile);
+        }
+        return nameConverter;
+    }
+
+    public void saveNameConverterConfig(){
+        try {
+            getNameConverterConfig().save(nameConverterFile);
+            nameConverter = YamlConfiguration.loadConfiguration(nameConverterFile);
+        } catch (IOException ex) {
+            getLogger().log(Level.SEVERE, "Could not save config to " + nameConverterFile, ex);
+        }
+    }
 	
 	public static String replaceUser(String msg, Player player){
 		return msg.replace("%USER", player.getName());
@@ -151,13 +186,34 @@ public class RewardMe extends JavaPlugin {
 	public static void sendMessage(CommandSender sender, String msg){
 		sender.sendMessage(new StringBuilder(25).append(ChatColor.GREEN).append("[RewardMe] ").append(ChatColor.GOLD).append(msg).toString());
 	}
-	
-	public static void info(String msg){
-		logger.info(msg);
-	}
-	
-	public static void warn(String msg){
-		logger.warning(msg);
-	}
 
+    public UUID uuidFromName(final String name) {
+        if (Bukkit.getPlayerExact(name) != null) {
+            return Bukkit.getPlayerExact(name).getUniqueId();
+        }
+        if (getNameConverterConfig().contains(name)) {
+            return UUID.fromString(getNameConverterConfig().getString(name));
+        }
+        Bukkit.getScheduler().runTaskAsynchronously(this, new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<String> names = new ArrayList<String>();
+                names.add(name);
+                UUIDFetcher fetcher = new UUIDFetcher(names);
+                try {
+                    final UUID uuid = fetcher.call().get(name);
+                    Bukkit.getScheduler().runTask(RewardMe.this, new Runnable() {
+                        @Override
+                        public void run() {
+                            getNameConverterConfig().set(name, uuid.toString());
+                            saveNameConverterConfig();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        return null;
+    }
 }
