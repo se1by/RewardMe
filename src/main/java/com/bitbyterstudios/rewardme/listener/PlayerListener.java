@@ -26,8 +26,13 @@ public class PlayerListener implements Listener {
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
-		
-		if (!player.hasPermission("RewardMe.Daily")) {
+
+        if (!plugin.getNameConverterConfig().getString(player.getName(), "").equals(player.getUniqueId().toString())) {
+            plugin.getNameConverterConfig().set(player.getName(), player.getUniqueId().toString());
+            plugin.saveNameConverterConfig();
+        }
+
+        if (!player.hasPermission("RewardMe.Daily")) {
 			return;
 		}
 		
@@ -50,8 +55,7 @@ public class PlayerListener implements Listener {
 				}
 			}
 		}.runTaskLater(plugin, plugin.getConfig().getInt("DailyLogin.Delay") * 1200L);
-		
-	}
+    }
 
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event){

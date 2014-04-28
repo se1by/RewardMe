@@ -222,26 +222,49 @@ public class CmdExecutor implements CommandExecutor {
         for (String key : plugin.getRedeemConfig().getKeys(false)) {
             names.addAll(plugin.getRedeemConfig().getConfigurationSection(key + ".UsedBy").getKeys(false));
         }
+        names = removeUUIDs(names);
         final UUIDFetcher fetcher = new UUIDFetcher(new ArrayList<String>(names));
         Bukkit.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
             @Override
             public void run() {
                 try {
                     final Map<String, UUID> converted = new HashMap<String, UUID>(fetcher.call());
-                    converted.putAll(fetcher.call());
                     Bukkit.getScheduler().runTask(plugin, new Runnable() {
                         @Override
                         public void run() {
                             for (String key : plugin.getPlayersConfig().getKeys(false)) {
-                                plugin.getPlayersConfig().set(converted.get(key).toString(), plugin.getPlayersConfig().getConfigurationSection(key));
-                                plugin.getPlayersConfig().set(key, null);
+                                if (RewardMe.isUUID(key)) {
+                                    String convertedKey = getKey(converted, key);
+                                    if (convertedKey == null) { continue; }
+                                    for (String block : plugin.getPlayersConfig().getConfigurationSection(key + ".MinedBlocks").getKeys(false)) {
+                                        int newValue = plugin.getPlayersConfig().getInt(convertedKey + ".MinedBlocks." + block) +
+                                                plugin.getPlayersConfig().getInt(key + ".MinedBlocks." + block);
+                                        plugin.getPlayersConfig().set(key + ".MinedBlocks." + block, newValue);
+                                    }
+                                    for (String kill : plugin.getPlayersConfig().getConfigurationSection(key + ".Kills").getKeys(false)) {
+                                        int newValue = plugin.getPlayersConfig().getInt(convertedKey + ".Kills." + kill) +
+                                                plugin.getPlayersConfig().getInt(key + ".Kills." + kill);
+                                        plugin.getPlayersConfig().set(key + ".Kills." + kill, newValue);
+                                    }
+                                    plugin.getPlayersConfig().set(convertedKey, null);
+                                } else {
+                                    plugin.getPlayersConfig().set(converted.get(key).toString(), plugin.getPlayersConfig().getConfigurationSection(key));
+                                    plugin.getPlayersConfig().set(key, null);
+                                }
                             }
                             for (String key : plugin.getPointsConfig().getKeys(false)) {
-                                plugin.getPointsConfig().set(converted.get(key).toString(), plugin.getPointsConfig().getConfigurationSection(key));
-                                plugin.getPointsConfig().set(key, null);
+                                if (RewardMe.isUUID(key)) {
+                                    String convertedKey = getKey(converted, key);
+                                    if (convertedKey == null) { continue; }
+                                    plugin.getPointsConfig().set(key, plugin.getPointsConfig().getInt(key) + plugin.getPointsConfig().getInt(convertedKey));
+                                } else {
+                                    plugin.getPointsConfig().set(converted.get(key).toString(), plugin.getPointsConfig().getInt(key));
+                                    plugin.getPointsConfig().set(key, null);
+                                }
                             }
                             for (String key : plugin.getRedeemConfig().getKeys(false)) {
                                 for (String userKey : plugin.getRedeemConfig().getConfigurationSection(key + ".UsedBy").getKeys(false)) {
+                                    if (RewardMe.isUUID(userKey)) { continue; }
                                     plugin.getRedeemConfig().set(key + ".UsedBy." + converted.get(userKey),
                                             plugin.getRedeemConfig().getConfigurationSection(key + ".UsedBy." + userKey));
                                     plugin.getRedeemConfig().set(key + ".UsedBy." + userKey, null);
@@ -258,5 +281,23 @@ public class CmdExecutor implements CommandExecutor {
                 }
             }
         });
+    }
+
+    private Set<String> removeUUIDs(Set<String> collection) {
+        for (String s : collection) {
+            if (RewardMe.isUUID(s)) {
+                collection.remove(s);
+            }
+        }
+        return collection;
+    }
+
+    private String getKey(Map<String, ?> map, Object value) {
+        for (Map.Entry<String, ?> e : map.entrySet()) {
+            if (e.getValue().equals(value)) {
+                return e.getKey();
+            }
+        }
+        return null;
     }
 }
