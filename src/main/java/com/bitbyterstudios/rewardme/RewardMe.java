@@ -1,11 +1,5 @@
 package com.bitbyterstudios.rewardme;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.UUID;
-import java.util.logging.Level;
-
 import com.bitbyterstudios.rewardme.listener.BlockListener;
 import com.bitbyterstudios.rewardme.listener.EntityListener;
 import com.bitbyterstudios.rewardme.listener.PlayerListener;
@@ -18,6 +12,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.UUID;
+import java.util.logging.Level;
 
 public class RewardMe extends JavaPlugin {
 	
@@ -56,12 +56,21 @@ public class RewardMe extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new VotifierListener(this), this);
         }
 
-		try {
-			Metrics metrics = new Metrics(this);
-			metrics.start();
-		} catch (IOException e) {
-			//Metrics disabled?
-		}
+        if (!getConfig().contains("Metrics.Enabled")) {
+            getConfig().set("Metrics.Enabled", true);
+            saveConfig();
+            getLogger().info("Metrics were enabled as the config didn't contain the \"Metrics.Enabled\" path.\n" +
+                    "You can disable it by setting it's value to false."); //To get info from upgrading users
+        }
+
+        if (getConfig().getBoolean("Metrics.Enabled")) {
+            try {
+                Metrics metrics = new Metrics(this);
+                metrics.start();
+            } catch (IOException e) {
+                //Metrics disabled?
+            }
+        }
 	}
 	
 	public FileConfiguration getPlayersConfig(){

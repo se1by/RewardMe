@@ -12,3 +12,5 @@ KillReward:
   Sheep:
     NeededKills: 1
     Command: give %USER dirt 3
+Metrics:
+  Enabled: true
