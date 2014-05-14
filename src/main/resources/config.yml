@@ -14,3 +14,7 @@ KillReward:
     Command: give %USER dirt 3
 Metrics:
   Enabled: true
+Updater:
+  Enabled: true
+  AutoUpdate: false
+  Notify: true

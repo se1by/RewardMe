@@ -3,7 +3,9 @@ package com.bitbyterstudios.rewardme;
 import java.util.*;
 
 import com.evilmidget38.UUIDFetcher;
+import net.gravitydevelopment.updater.Updater;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -33,6 +35,8 @@ public class CmdExecutor implements CommandExecutor {
 		} else if (cmd.getName().equalsIgnoreCase("rewardme")) {
             if (args.length == 1 && "convert".equalsIgnoreCase(args[0])) {
                 convert(sender);
+            } else if (args.length == 1 && "update".equalsIgnoreCase(args[0])) {
+                update(sender);
             } else {
                 showHelp(sender);
             }
@@ -199,6 +203,19 @@ public class CmdExecutor implements CommandExecutor {
 			}
 		}
 	}
+
+    private void update(CommandSender sender) {
+        if (!sender.hasPermission("RewardMe.givePoints") && !sender.isOp()) {
+            RewardMe.sendMessage(sender, "Insufficient permissions!");
+            return;
+        }
+        Updater updater = new Updater(plugin, 33420, plugin.getPluginFile(), Updater.UpdateType.DEFAULT, false);
+        if (updater.getResult().equals(Updater.UpdateResult.SUCCESS)) {
+            sender.sendMessage(ChatColor.GREEN + "Successfully updated to " + updater.getLatestName());
+        } else {
+            sender.sendMessage(ChatColor.RED + "Failed to update: " + updater.getResult().name());
+        }
+    }
 
 	private void showHelp(CommandSender sender) {
 		RewardMe.sendMessage(sender, "Help");

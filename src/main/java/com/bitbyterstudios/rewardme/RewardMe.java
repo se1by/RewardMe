@@ -5,6 +5,7 @@ import com.bitbyterstudios.rewardme.listener.EntityListener;
 import com.bitbyterstudios.rewardme.listener.PlayerListener;
 import com.bitbyterstudios.rewardme.listener.VotifierListener;
 import com.evilmidget38.UUIDFetcher;
+import net.gravitydevelopment.updater.Updater;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -31,6 +32,8 @@ public class RewardMe extends JavaPlugin {
 	private File redeemFile;
 	private File rewardsFile;
     private File nameConverterFile;
+    private boolean shouldNotify;
+    private File pluginFile;
 	
 	public void onEnable(){
 		saveDefaultConfig();
@@ -56,6 +59,29 @@ public class RewardMe extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new VotifierListener(this), this);
         }
 
+        if (!getConfig().contains("Updater.Enabled")) {
+            getConfig().set("Updater.Enabled", true);
+            getConfig().set("Updater.AutoUpdate", false);
+            getConfig().set("Updater.Notify", true);
+            saveConfig();
+            getLogger().info("Updater was enabled as the config didn't contain the \"Updater.Enabled\" path.\n" +
+                    "You can disable it by setting it's value to false.");
+        }
+
+        if (getConfig().getBoolean("Updater.Enabled")) {
+            Updater updater = null;
+            if (getConfig().getBoolean("Updater.AutoUpdate")) {
+                updater = new Updater(this, 33420, this.getFile(), Updater.UpdateType.DEFAULT, false);
+            } else {
+                updater = new Updater(this, 33420, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, false);
+            }
+            if ((updater.getResult().equals(Updater.UpdateResult.UPDATE_AVAILABLE)
+                    || updater.getResult().equals(Updater.UpdateResult.SUCCESS))
+                    && getConfig().getBoolean("Updater.Notify")) {
+                shouldNotify = true;
+            }
+        }
+
         if (!getConfig().contains("Metrics.Enabled")) {
             getConfig().set("Metrics.Enabled", true);
             saveConfig();
@@ -71,6 +97,8 @@ public class RewardMe extends JavaPlugin {
                 //Metrics disabled?
             }
         }
+
+        pluginFile = this.getFile();
 	}
 	
 	public FileConfiguration getPlayersConfig(){
@@ -172,8 +200,16 @@ public class RewardMe extends JavaPlugin {
             getLogger().log(Level.SEVERE, "Could not save config to " + nameConverterFile, ex);
         }
     }
-	
-	public static String replaceUser(String msg, Player player){
+
+    public boolean shouldNotify() {
+        return shouldNotify;
+    }
+
+    public File getPluginFile() {
+        return pluginFile;
+    }
+
+    public static String replaceUser(String msg, Player player){
 		return msg.replace("%USER", player.getName());
 	}
 	

@@ -4,6 +4,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 import com.bitbyterstudios.rewardme.RewardMe;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -30,6 +31,10 @@ public class PlayerListener implements Listener {
         if (!plugin.getNameConverterConfig().getString(player.getName(), "").equals(player.getUniqueId().toString())) {
             plugin.getNameConverterConfig().set(player.getName(), player.getUniqueId().toString());
             plugin.saveNameConverterConfig();
+        }
+
+        if (player.hasPermission("RewardMe.givePoints")) {
+            player.sendMessage(ChatColor.GREEN + "There is a new update for RewardMe!");
         }
 
         if (!player.hasPermission("RewardMe.Daily")) {
