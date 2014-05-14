@@ -37,12 +37,12 @@ public class PlayerListener implements Listener {
 		}
 		
 		int lastLogin = plugin.getPlayersConfig().
-				getInt(player.getUniqueId().toString() + "LastLogin");
+				getInt(player.getUniqueId().toString() + ".LastLogin");
 		
 		if (lastLogin == date) {
 			return;
 		}
-		
+
 		loggedIn.put(player.getName(), true);
 		
 		new BukkitRunnable() {
