@@ -8,7 +8,7 @@
 
 
     <build>
-        <finalName>RewardMe</finalName>
+        <finalName>${project.artifactId}</finalName>
         <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
         <resources>
             <resource>
@@ -20,6 +20,7 @@
                 </includes>
             </resource>
         </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -51,29 +52,28 @@
                 </executions>
             </plugin>
         </plugins>
-        <extensions>
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-file</artifactId>
-                <version>2.2</version>
-            </extension>
-        </extensions>
     </build>
+
     <repositories>
         <repository>
             <id>bukkit-repo</id>
             <url>http://repo.bukkit.org/content/groups/public/</url>
         </repository>
         <repository>
-        <id>gravity-repo</id>
-        <url>http://repo.gravitydevelopment.net</url>
-    </repository>
+            <id>votifier-repo</id>
+            <url>http://repo.sacredlabyrinth.net:8081/artifactory/remote-repos/</url>
+        </repository>
+        <repository>
+            <id>gravity-repo</id>
+            <url>http://repo.gravitydevelopment.net</url>
+        </repository>
     </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.7.2-R0.3</version>
+            <version>1.7.9-R0.2</version>
         </dependency>
         <dependency>
             <groupId>com.vexsoftware</groupId>
@@ -86,12 +86,7 @@
             <version>2.1</version>
         </dependency>
     </dependencies>
-    <distributionManagement>
-        <repository>
-            <id>nuclearw-repo</id>
-            <url>file:///var/lib/jenkins/repo</url>
-        </repository>
-    </distributionManagement>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
