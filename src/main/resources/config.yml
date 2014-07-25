@@ -18,3 +18,4 @@ Updater:
   Enabled: true
   AutoUpdate: false
   Notify: true
+locale: EN

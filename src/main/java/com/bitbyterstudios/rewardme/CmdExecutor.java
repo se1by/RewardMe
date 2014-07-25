@@ -1,15 +1,15 @@
 package com.bitbyterstudios.rewardme;
 
-import java.util.*;
-
 import com.evilmidget38.UUIDFetcher;
+import com.puzlinc.messenger.Messenger;
 import net.gravitydevelopment.updater.Updater;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.*;
 
 public class CmdExecutor implements CommandExecutor {
 	
@@ -70,7 +70,7 @@ public class CmdExecutor implements CommandExecutor {
 		}
         UUID toShowUUID = plugin.uuidFromName(toShow);
         if (toShowUUID == null) {
-            RewardMe.sendMessage(sendTo, toShow + "'s UUID was not cached. Please try again in a few seconds.");
+            plugin.getMessenger().send(Messenger.NOT_CACHED, sendTo, toShow);
             return;
         }
 		int pPoints = plugin.getPointsConfig().getInt(toShowUUID.toString());
@@ -83,13 +83,13 @@ public class CmdExecutor implements CommandExecutor {
 
 	private void givePoints(CommandSender sender, String userString, int amount) {
         if (!sender.hasPermission("RewardMe.givePoints") && !sender.isOp()) {
-            RewardMe.sendMessage(sender, "Insufficient permissions!");
+            plugin.getMessenger().send(Messenger.INSUFFICIENT_PERMISSIONS, sender);
             return;
         }
 
         UUID userUUID = plugin.uuidFromName(userString);
         if (userUUID == null) {
-            RewardMe.sendMessage(sender, userString + "'s UUID was not cached. Please try again in a few seconds.");
+            plugin.getMessenger().send(Messenger.NOT_CACHED, sender, userString);
             return;
         }
 		Player user = Bukkit.getPlayerExact(userString);
@@ -99,9 +99,9 @@ public class CmdExecutor implements CommandExecutor {
 	    plugin.getPointsConfig().set(userUUID.toString(), newPoints);
 		plugin.savePointsConfig();
 			
-		RewardMe.sendMessage(sender, amount + " points given!");
+		plugin.getMessenger().send(Messenger.POINTS_GIVEN, sender, String.valueOf(amount), userString);
         if (user != null) {
-            RewardMe.sendMessage(user, "You received " + amount + " points from " + sender.getName());
+            plugin.getMessenger().send(Messenger.POINTS_RECEIVED, user, String.valueOf(amount), sender.getName());
         }
 	}
 
@@ -110,9 +110,7 @@ public class CmdExecutor implements CommandExecutor {
 		for (String reward : allRewards) {
 			String descr = plugin.getRewardsConfig().getString(reward + ".Description");
 			int price = plugin.getRewardsConfig().getInt(reward + ".Price");
-			RewardMe.sendMessage(sender, "Type in /reward buy " + reward
-					+ " to get " + descr + ".");
-			RewardMe.sendMessage(sender, "Price: " + price + " points.");
+            plugin.getMessenger().send(Messenger.REWARD_INFO,sender, reward, descr, String.valueOf(price));
 		}
 	}
 
@@ -142,12 +140,12 @@ public class CmdExecutor implements CommandExecutor {
 						Integer.valueOf(pPoints - price));
 				plugin.savePointsConfig();
 
-				RewardMe.sendMessage(player, "Reward " + item + " given!");
+                plugin.getMessenger().send(Messenger.REWARD_GIVEN, player, item);
 			} else {
-				RewardMe.sendMessage(player, "An error occured!");
+                plugin.getMessenger().send(Messenger.REWARD_ERROR, player);
 			}
 		} else {
-			RewardMe.sendMessage(player, "You don't have enough points!");
+            plugin.getMessenger().send(Messenger.REWARD_NOT_ENOUGH_POINTS, player);
 		}
 	}
 
@@ -157,7 +155,7 @@ public class CmdExecutor implements CommandExecutor {
 		}
 		String name = args[0];
 		if (plugin.getRedeemConfig().contains(name)) {
-			RewardMe.sendMessage(sender, "This name is already taken!");
+			plugin.getMessenger().send(Messenger.REDEEM_NAME_TAKEN, sender);
 			return;
 		}
 		Redeem r = new Redeem(name, plugin);
@@ -168,8 +166,7 @@ public class CmdExecutor implements CommandExecutor {
 			int duration = Integer.parseInt(args[1]);
 			code = r.generateCode("", duration);
 		}
-		RewardMe.sendMessage(sender, "Your redeemcode is " + code.toString());
-		RewardMe.sendMessage(sender, "Please change the default reward-command in Redeem.yml");
+		plugin.getMessenger().send(Messenger.REDEEM_CODE_INFO, sender, code.toString());
 	}
 
 	private void handleUseRedeem(CommandSender sender, String[] args) {
@@ -188,49 +185,44 @@ public class CmdExecutor implements CommandExecutor {
 		String command = redeem.useCode(player);
 		command = RewardMe.replaceUser(command, player);
 		if (command.equalsIgnoreCase("used")) {
-			RewardMe.sendMessage(player, "You already used that code!");
+            plugin.getMessenger().send(Messenger.REDEEM_USED, player);
 		} else if (command.equalsIgnoreCase("outdated")) {
-			RewardMe.sendMessage(player, "Outdated code!");
+            plugin.getMessenger().send(Messenger.REDEEM_OUTDATED, player);
 		} else if (command.equalsIgnoreCase("error")) {
-			RewardMe.sendMessage(player, "An error occurred!");
-			RewardMe.sendMessage(player,  "Please contact an admin!");
+            plugin.getMessenger().send(Messenger.REDEEM_ERROR, player);
 		} else if (command.equalsIgnoreCase("unknown")) {
-			RewardMe.sendMessage(player, "Unknown code!");
+            plugin.getMessenger().send(Messenger.REDEEM_UNKNOWN, player);
 		} else {
 			boolean success = RewardMe.executeCmd(command);
 			if (!success) {
-				RewardMe.sendMessage(player, "An error occurred!");
+                plugin.getMessenger().send(Messenger.REDEEM_ERROR, player);
 			}
 		}
 	}
 
     private void update(CommandSender sender) {
         if (!sender.hasPermission("RewardMe.givePoints") && !sender.isOp()) {
-            RewardMe.sendMessage(sender, "Insufficient permissions!");
+            plugin.getMessenger().send(Messenger.INSUFFICIENT_PERMISSIONS, sender);
             return;
         }
         Updater updater = new Updater(plugin, 33420, plugin.getPluginFile(), Updater.UpdateType.DEFAULT, false);
         if (updater.getResult().equals(Updater.UpdateResult.SUCCESS)) {
-            sender.sendMessage(ChatColor.GREEN + "Successfully updated to " + updater.getLatestName());
+            plugin.getMessenger().send(Messenger.UPDATE_SUCCESS, sender, updater.getLatestName());
         } else {
-            sender.sendMessage(ChatColor.RED + "Failed to update: " + updater.getResult().name());
+            plugin.getMessenger().send(Messenger.UPDATE_FAIL, sender, updater.getResult().name());
         }
     }
 
 	private void showHelp(CommandSender sender) {
-		RewardMe.sendMessage(sender, "Help");
-		RewardMe.sendMessage(sender, "/Points to show your current Points");
+        plugin.getMessenger().send(Messenger.HELP_USER, sender);
 		if (sender.hasPermission("RewardMe.givePoints")) {
-			RewardMe.sendMessage(sender, "/Points <user> <amount> to give <user> <amount> Points ");
+            plugin.getMessenger().send(Messenger.HELP_ADMIN, sender);
 		}
-		RewardMe.sendMessage(sender, "/rewards to show all accessible rewards");
-		RewardMe.sendMessage(sender, "/reward <name> to buy the reward <name>");
-		
 	}
 
     private void convert(final CommandSender sender) {
         if (!sender.hasPermission("RewardMe.givePoints")) {
-            RewardMe.sendMessage(sender, "Insufficient permissions!");
+            plugin.getMessenger().send(Messenger.INSUFFICIENT_PERMISSIONS, sender);
             return;
         }
 
@@ -290,7 +282,7 @@ public class CmdExecutor implements CommandExecutor {
                             plugin.savePlayersConfig();
                             plugin.savePointsConfig();
                             plugin.saveRedeemConfig();
-                            RewardMe.sendMessage(sender, "Conversion done!");
+                            plugin.getMessenger().send(Messenger.CONVERSION_DONE, sender);
                         }
                     });
                 } catch (Exception e) {

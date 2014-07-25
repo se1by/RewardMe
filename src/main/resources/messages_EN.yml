@@ -1,0 +1,39 @@
+points:
+  uuid_not_cached: "&c%s's UUID was not cached. Please try again in a few seconds." #possible data: username
+  info: "&6%s got %s points!" #possible data: username, points
+  received:  "&6You received %s points from &s!" #possible data: points, username
+  given: "&6%s points given to %s!" #possible data: points, username
+reward:
+  info:
+    - "&6Type in /reward buy %s to get &s." #possible data: reward name, reward description
+    - "&6Price: %s points." #possible data: price
+  given: "&6Reward %s given!" #possible data: reward name
+  error:
+    - "&cAn error occured!"
+    - "&6Please inform an admin!"
+  not_enough_points: "&cYou don't have enough points!"
+redeem:
+  generate:
+    name_taken: "&cThis name is already taken!"
+    code_info:
+      - "&6Your redeemcode is %s" #possible data: redeem code
+      - "Please change the default reward-command in Redeem.yml"
+  use:
+    already_used: "&cYou already used that code!"
+    outdated: "&cOutdated code!"
+    error:
+      - "&cAn error occurred!"
+      - "&cPlease contact an admin!"
+    unknown_code: "&cUnknown code!"
+update:
+  success: "&6Successfully updated to %s!" #possible data: version
+  fail: "&cFailed to update: %s" #possible data: reason
+help:
+  user:
+    - "&6Help"
+    - "&6/points to show your current Points"
+    - "&6/rewards to show all accessible rewards"
+    - "&6/reward <name> to buy the reward <name>"
+  admin: "/points <user> <amount> to give <user> <amount> points"
+insufficient_permissions: "&cInsufficient permissions!"
+conversion_done: "&6Conversion done!"

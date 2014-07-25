@@ -5,6 +5,7 @@ import com.bitbyterstudios.rewardme.listener.EntityListener;
 import com.bitbyterstudios.rewardme.listener.PlayerListener;
 import com.bitbyterstudios.rewardme.listener.VotifierListener;
 import com.evilmidget38.UUIDFetcher;
+import com.puzlinc.messenger.Messenger;
 import net.gravitydevelopment.updater.Updater;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,9 +35,22 @@ public class RewardMe extends JavaPlugin {
     private File nameConverterFile;
     private boolean shouldNotify;
     private File pluginFile;
+
+    private Messenger messenger;
 	
 	public void onEnable(){
 		saveDefaultConfig();
+
+        messenger = new Messenger(this);
+        if (getConfig().contains("locale")) {
+            messenger.setFileName("messages_" + getConfig().getString("locale") + ".yml");
+        } else {
+            saveResource("messages_EN.yml", false);
+            getConfig().set("locale", "EN");
+            saveConfig();
+            messenger.setFileName("messages_EN.yml");
+        }
+        messenger.load();
 		
 		CmdExecutor cmdExec = new CmdExecutor(this);
 		getCommand("rewardme").setExecutor(cmdExec);
@@ -100,8 +114,12 @@ public class RewardMe extends JavaPlugin {
 
         pluginFile = this.getFile();
 	}
-	
-	public FileConfiguration getPlayersConfig(){
+
+    public Messenger getMessenger() {
+        return messenger;
+    }
+
+    public FileConfiguration getPlayersConfig(){
 		if (players == null) {
 			playersFile = new File(getDataFolder(), "players.yml");
 			if (!playersFile.exists()) {
