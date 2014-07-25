@@ -74,11 +74,7 @@ public class CmdExecutor implements CommandExecutor {
             return;
         }
 		int pPoints = plugin.getPointsConfig().getInt(toShowUUID.toString());
-		if ((pPoints == 1) || (pPoints == -1)) {
-			RewardMe.sendMessage(sendTo,pre + " got " + pPoints + " point");
-		} else {
-			RewardMe.sendMessage(sendTo,pre + " got " + pPoints + " points");
-		}
+		plugin.getMessenger().send(Messenger.POINTS_INFO, sendTo, toShow, pPoints);
 	}
 
 	private void givePoints(CommandSender sender, String userString, int amount) {
@@ -108,9 +104,9 @@ public class CmdExecutor implements CommandExecutor {
 	private void showRewards(CommandSender sender) {
 		Set<String> allRewards = plugin.getRewardsConfig().getKeys(false);
 		for (String reward : allRewards) {
-			String descr = plugin.getRewardsConfig().getString(reward + ".Description");
+			String desc = plugin.getRewardsConfig().getString(reward + ".Description");
 			int price = plugin.getRewardsConfig().getInt(reward + ".Price");
-            plugin.getMessenger().send(Messenger.REWARD_INFO,sender, reward, descr, String.valueOf(price));
+            plugin.getMessenger().send(Messenger.REWARD_INFO,sender, reward, desc, String.valueOf(price));
 		}
 	}
 
@@ -119,7 +115,7 @@ public class CmdExecutor implements CommandExecutor {
 			if (sender instanceof Player) {
 				buyReward((Player) sender, args[1]);
 			} else {
-				RewardMe.sendMessage(sender, "The console refused the reward :O");
+				plugin.getLogger().info("The console refused the reward :O");
 			}
 		} else {
 			showHelp(sender);
@@ -127,6 +123,10 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void buyReward(Player player, String item) {
+        if (!plugin.getRewardsConfig().contains(item)) {
+            plugin.getMessenger().send(Messenger.REWARD_UNKNOWN, player, item);
+            return;
+        }
 		String command = plugin.getRewardsConfig().getString(item + ".Command");
 		command = RewardMe.replaceUser(command, player);
 		int price = plugin.getRewardsConfig().getInt(item + ".Price");
@@ -176,11 +176,15 @@ public class CmdExecutor implements CommandExecutor {
 		if (sender instanceof Player) {
 			useRedeem((Player) sender, args[0]);
 		} else {
-			RewardMe.sendMessage(sender, "The console doesn't want that :O");
+			plugin.getLogger().info("The console doesn't want that :O");
 		}
 	}
 
 	private void useRedeem(Player player, String code) {
+        if (!RewardMe.isUUID(code)) {
+            plugin.getMessenger().send(Messenger.REDEEM_ERROR, player);
+            return;
+        }
 		Redeem redeem = new Redeem(UUID.fromString(code), plugin);
 		String command = redeem.useCode(player);
 		command = RewardMe.replaceUser(command, player);

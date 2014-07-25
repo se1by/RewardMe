@@ -8,7 +8,6 @@ import com.evilmidget38.UUIDFetcher;
 import com.puzlinc.messenger.Messenger;
 import net.gravitydevelopment.updater.Updater;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -243,10 +242,6 @@ public class RewardMe extends JavaPlugin {
 			e.printStackTrace();
 		  }
 		return false;
-	}
-	
-	public static void sendMessage(CommandSender sender, String msg){
-		sender.sendMessage(new StringBuilder(25).append(ChatColor.GREEN).append("[RewardMe] ").append(ChatColor.GOLD).append(msg).toString());
 	}
 
     public UUID uuidFromName(final String name) {

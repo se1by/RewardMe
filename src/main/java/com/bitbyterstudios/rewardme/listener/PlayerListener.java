@@ -80,13 +80,13 @@ public class PlayerListener implements Listener {
 		if (message == null) {
 			message = "LoginReward given!";
             plugin.getLogger().warning("You enabled the daily login reward, but didn't set a message!");
-            plugin.getLogger().warning("Please set an command at \"DailyLogin\" -> \"Message\"");
+            plugin.getLogger().warning("Please set a message at \"DailyLogin\" -> \"Message\"");
 		}
 		message = RewardMe.replaceUser(message, player);
 		
 		RewardMe.executeCmd(cmd);
-		RewardMe.sendMessage(player, message);
-		
+        player.sendMessage(ChatColor.GREEN + "[RewardMe] " + ChatColor.GOLD + message);
+
 		plugin.getPlayersConfig().set(player.getUniqueId().toString() + ".LastLogin", date);
 		plugin.savePlayersConfig();
 	}

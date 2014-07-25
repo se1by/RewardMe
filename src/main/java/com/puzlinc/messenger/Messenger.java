@@ -38,6 +38,7 @@ public class Messenger {
     public static final String POINTS_RECEIVED = "points.received";
     public static final String POINTS_GIVEN = "points.given";
     public static final String REWARD_INFO = "reward.info";
+    public static final String REWARD_UNKNOWN = "reward.unknown";
     public static final String REWARD_GIVEN = "reward.given";
     public static final String REWARD_ERROR = "reward.error";
     public static final String REWARD_NOT_ENOUGH_POINTS = "reward.not_enough_points";
@@ -59,9 +60,10 @@ public class Messenger {
     private Map<String, Object> defaults = new HashMap<String, Object>(){{
         put(NOT_CACHED, "&c%s's UUID was not cached. Please try again in a few seconds.");
         put(POINTS_INFO, "&6%s got %s points!");
-        put(POINTS_RECEIVED, "&6You received %s points from &s!");
+        put(POINTS_RECEIVED, "&6You received %s points from %s!");
         put(POINTS_GIVEN, "&6%s points given!");
-        put(REWARD_INFO, Arrays.asList("&6Type in /reward buy %s to get &s.", "&6Price: %s points."));
+        put(REWARD_INFO, Arrays.asList("&6Type in /reward buy %s to get %s.", "&6Price: %s points."));
+        put(REWARD_UNKNOWN, "&cThere is no reward called %s!");
         put(REWARD_GIVEN, "&6Reward %s given!");
         put(REWARD_ERROR, Arrays.asList("&cAn error occured!", "&6Please inform an admin!"));
         put(REWARD_NOT_ENOUGH_POINTS, "&cYou don't have enough points!");

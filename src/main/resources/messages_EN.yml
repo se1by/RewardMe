@@ -1,11 +1,11 @@
 points:
   uuid_not_cached: "&c%s's UUID was not cached. Please try again in a few seconds." #possible data: username
   info: "&6%s got %s points!" #possible data: username, points
-  received:  "&6You received %s points from &s!" #possible data: points, username
+  received:  "&6You received %s points from %s!" #possible data: points, username
   given: "&6%s points given to %s!" #possible data: points, username
 reward:
   info:
-    - "&6Type in /reward buy %s to get &s." #possible data: reward name, reward description
+    - "&6Type in /reward buy %s to get %s." #possible data: reward name, reward description
     - "&6Price: %s points." #possible data: price
   given: "&6Reward %s given!" #possible data: reward name
   error:
