@@ -28,16 +28,18 @@ public class EntityListener implements Listener {
 		String command = plugin.getConfig().getString("KillReward." + leName + ".Command");
 		if (command != null) {
 			final int neededKills = plugin.getConfig().getInt("KillReward." + leName + ".NeededKills");
-			final int kills = plugin.getPlayersConfig().getInt(killer.getUniqueId().toString() + ".Kills." + leName) + 1;
+			final int kills = plugin.getConfigManager().getPlayerConfig()
+                    .getInt(killer.getUniqueId().toString() + ".Kills." + leName) + 1;
 			
 			if (kills >= neededKills) {
 				command = RewardMe.replaceUser(command, killer);
 				RewardMe.executeCmd(command);
-				plugin.getPlayersConfig().set(killer.getUniqueId().toString() + ".Kills." + leName, 0);
+				plugin.getConfigManager().getPlayerConfig()
+                        .setAndSave(killer.getUniqueId().toString() + ".Kills." + leName, 0);
 			} else {
-				plugin.getPlayersConfig().set(killer.getUniqueId().toString() + ".Kills." + leName, kills);
+				plugin.getConfigManager().getPlayerConfig()
+                        .setAndSave(killer.getUniqueId().toString() + ".Kills." + leName, kills);
 			}
-			plugin.savePlayersConfig();
 		}
 		
 	}

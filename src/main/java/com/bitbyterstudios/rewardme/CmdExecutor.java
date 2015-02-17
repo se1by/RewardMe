@@ -73,7 +73,7 @@ public class CmdExecutor implements CommandExecutor {
             plugin.getMessenger().send(Messenger.NOT_CACHED, sendTo, toShow);
             return;
         }
-		int pPoints = plugin.getPointsConfig().getInt(toShowUUID.toString());
+		int pPoints = plugin.getConfigManager().getPointConfig().getInt(toShowUUID.toString());
 		plugin.getMessenger().send(Messenger.POINTS_INFO, sendTo, toShow, pPoints);
 	}
 
@@ -89,12 +89,11 @@ public class CmdExecutor implements CommandExecutor {
             return;
         }
 		Player user = Bukkit.getPlayerExact(userString);
-		int oldPoints = plugin.getPointsConfig().getInt(userUUID.toString());
+		int oldPoints = plugin.getConfigManager().getPointConfig().getInt(userUUID.toString());
 		int newPoints = oldPoints + amount;
 
-	    plugin.getPointsConfig().set(userUUID.toString(), newPoints);
-		plugin.savePointsConfig();
-			
+	    plugin.getConfigManager().getPointConfig().setAndSave(userUUID.toString(), newPoints);
+
 		plugin.getMessenger().send(Messenger.POINTS_GIVEN, sender, String.valueOf(amount), userString);
         if (user != null) {
             plugin.getMessenger().send(Messenger.POINTS_RECEIVED, user, String.valueOf(amount), sender.getName());
@@ -102,10 +101,10 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void showRewards(CommandSender sender) {
-		Set<String> allRewards = plugin.getRewardsConfig().getKeys(false);
+		Set<String> allRewards = plugin.getConfigManager().getRewardConfig().getKeys(false);
 		for (String reward : allRewards) {
-			String desc = plugin.getRewardsConfig().getString(reward + ".Description");
-			int price = plugin.getRewardsConfig().getInt(reward + ".Price");
+			String desc = plugin.getConfigManager().getRewardConfig().getString(reward + ".Description");
+			int price = plugin.getConfigManager().getRewardConfig().getInt(reward + ".Price");
             plugin.getMessenger().send(Messenger.REWARD_INFO,sender, reward, desc, String.valueOf(price));
 		}
 	}
@@ -123,22 +122,21 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void buyReward(Player player, String item) {
-        if (!plugin.getRewardsConfig().contains(item)) {
+        if (!plugin.getConfigManager().getRewardConfig().contains(item)) {
             plugin.getMessenger().send(Messenger.REWARD_UNKNOWN, player, item);
             return;
         }
-		String command = plugin.getRewardsConfig().getString(item + ".Command");
+		String command = plugin.getConfigManager().getRewardConfig().getString(item + ".Command");
 		command = RewardMe.replaceUser(command, player);
-		int price = plugin.getRewardsConfig().getInt(item + ".Price");
-		int pPoints = plugin.getPointsConfig().getInt(player.getUniqueId().toString());
+		int price = plugin.getConfigManager().getRewardConfig().getInt(item + ".Price");
+		int pPoints = plugin.getConfigManager().getPointConfig().getInt(player.getUniqueId().toString());
 
 		if (pPoints >= price) {
 			boolean success = RewardMe.executeCmd(command);
 
 			if (success) {
-				plugin.getPointsConfig().set(player.getUniqueId().toString(),
-						Integer.valueOf(pPoints - price));
-				plugin.savePointsConfig();
+				plugin.getConfigManager().getPointConfig().setAndSave(player.getUniqueId().toString(),
+                        pPoints - price);
 
                 plugin.getMessenger().send(Messenger.REWARD_GIVEN, player, item);
 			} else {
@@ -154,7 +152,7 @@ public class CmdExecutor implements CommandExecutor {
 			return;
 		}
 		String name = args[0];
-		if (plugin.getRedeemConfig().contains(name)) {
+		if (plugin.getConfigManager().getRedeemConfig().contains(name)) {
 			plugin.getMessenger().send(Messenger.REDEEM_NAME_TAKEN, sender);
 			return;
 		}
@@ -230,10 +228,10 @@ public class CmdExecutor implements CommandExecutor {
             return;
         }
 
-        Set<String> names = plugin.getPlayersConfig().getKeys(false);
-        names.addAll(plugin.getPointsConfig().getKeys(false));
-        for (String key : plugin.getRedeemConfig().getKeys(false)) {
-            names.addAll(plugin.getRedeemConfig().getConfigurationSection(key + ".UsedBy").getKeys(false));
+        Set<String> names = plugin.getConfigManager().getPlayerConfig().getKeys(false);
+        names.addAll(plugin.getConfigManager().getPointConfig().getKeys(false));
+        for (String key : plugin.getConfigManager().getRedeemConfig().getKeys(false)) {
+            names.addAll(plugin.getConfigManager().getRedeemConfig().getConfigurationSection(key + ".UsedBy").getKeys(false));
         }
         names = removeUUIDs(names);
         final UUIDFetcher fetcher = new UUIDFetcher(new ArrayList<String>(names));
@@ -245,47 +243,56 @@ public class CmdExecutor implements CommandExecutor {
                     Bukkit.getScheduler().runTask(plugin, new Runnable() {
                         @Override
                         public void run() {
-                            for (String key : plugin.getPlayersConfig().getKeys(false)) {
+                            for (String key : plugin.getConfigManager().getPlayerConfig().getKeys(false)) {
                                 if (RewardMe.isUUID(key)) {
                                     String convertedKey = getKey(converted, key);
                                     if (convertedKey == null) { continue; }
-                                    for (String block : plugin.getPlayersConfig().getConfigurationSection(key + ".MinedBlocks").getKeys(false)) {
-                                        int newValue = plugin.getPlayersConfig().getInt(convertedKey + ".MinedBlocks." + block) +
-                                                plugin.getPlayersConfig().getInt(key + ".MinedBlocks." + block);
-                                        plugin.getPlayersConfig().set(key + ".MinedBlocks." + block, newValue);
+                                    for (String block : plugin.getConfigManager().getPlayerConfig()
+                                            .getConfigurationSection(key + ".MinedBlocks").getKeys(false)) {
+                                        int newValue = plugin.getConfigManager().getPlayerConfig()
+                                                .getInt(convertedKey + ".MinedBlocks." + block) +
+                                                plugin.getConfigManager().getPlayerConfig().getInt(key + ".MinedBlocks." + block);
+                                        plugin.getConfigManager().getPlayerConfig()
+                                                .setAndSave(key + ".MinedBlocks." + block, newValue);
                                     }
-                                    for (String kill : plugin.getPlayersConfig().getConfigurationSection(key + ".Kills").getKeys(false)) {
-                                        int newValue = plugin.getPlayersConfig().getInt(convertedKey + ".Kills." + kill) +
-                                                plugin.getPlayersConfig().getInt(key + ".Kills." + kill);
-                                        plugin.getPlayersConfig().set(key + ".Kills." + kill, newValue);
+                                    for (String kill : plugin.getConfigManager().getPlayerConfig()
+                                            .getConfigurationSection(key + ".Kills").getKeys(false)) {
+                                        int newValue = plugin.getConfigManager().getPlayerConfig()
+                                                .getInt(convertedKey + ".Kills." + kill) +
+                                                plugin.getConfigManager().getPlayerConfig().getInt(key + ".Kills." + kill);
+                                        plugin.getConfigManager().getPlayerConfig().setAndSave(key + ".Kills." + kill, newValue);
                                     }
-                                    plugin.getPlayersConfig().set(convertedKey, null);
+                                    plugin.getConfigManager().getPlayerConfig().setAndSave(convertedKey, null);
                                 } else {
-                                    plugin.getPlayersConfig().set(converted.get(key).toString(), plugin.getPlayersConfig().getConfigurationSection(key));
-                                    plugin.getPlayersConfig().set(key, null);
+                                    plugin.getConfigManager().getPlayerConfig()
+                                            .setAndSave(converted.get(key).toString(),
+                                                    plugin.getConfigManager().getPlayerConfig().getConfigurationSection(key));
+                                    plugin.getConfigManager().getPlayerConfig().setAndSave(key, null);
                                 }
                             }
-                            for (String key : plugin.getPointsConfig().getKeys(false)) {
+                            for (String key : plugin.getConfigManager().getPointConfig().getKeys(false)) {
                                 if (RewardMe.isUUID(key)) {
                                     String convertedKey = getKey(converted, key);
                                     if (convertedKey == null) { continue; }
-                                    plugin.getPointsConfig().set(key, plugin.getPointsConfig().getInt(key) + plugin.getPointsConfig().getInt(convertedKey));
+                                    plugin.getConfigManager().getPointConfig().setAndSave(
+                                            key, plugin.getConfigManager().getPointConfig().getInt(key)
+                                                    + plugin.getConfigManager().getPointConfig().getInt(convertedKey));
                                 } else {
-                                    plugin.getPointsConfig().set(converted.get(key).toString(), plugin.getPointsConfig().getInt(key));
-                                    plugin.getPointsConfig().set(key, null);
+                                    plugin.getConfigManager().getPointConfig()
+                                            .setAndSave(converted.get(key).toString(),
+                                                    plugin.getConfigManager().getPointConfig().getInt(key));
+                                    plugin.getConfigManager().getPointConfig().setAndSave(key, null);
                                 }
                             }
-                            for (String key : plugin.getRedeemConfig().getKeys(false)) {
-                                for (String userKey : plugin.getRedeemConfig().getConfigurationSection(key + ".UsedBy").getKeys(false)) {
+                            for (String key : plugin.getConfigManager().getRedeemConfig().getKeys(false)) {
+                                for (String userKey : plugin.getConfigManager().getRedeemConfig()
+                                        .getConfigurationSection(key + ".UsedBy").getKeys(false)) {
                                     if (RewardMe.isUUID(userKey)) { continue; }
-                                    plugin.getRedeemConfig().set(key + ".UsedBy." + converted.get(userKey),
-                                            plugin.getRedeemConfig().getConfigurationSection(key + ".UsedBy." + userKey));
-                                    plugin.getRedeemConfig().set(key + ".UsedBy." + userKey, null);
+                                    plugin.getConfigManager().getRedeemConfig().setAndSave(key + ".UsedBy." + converted.get(userKey),
+                                            plugin.getConfigManager().getRedeemConfig().getConfigurationSection(key + ".UsedBy." + userKey));
+                                    plugin.getConfigManager().getRedeemConfig().setAndSave(key + ".UsedBy." + userKey, null);
                                 }
                             }
-                            plugin.savePlayersConfig();
-                            plugin.savePointsConfig();
-                            plugin.saveRedeemConfig();
                             plugin.getMessenger().send(Messenger.CONVERSION_DONE, sender);
                         }
                     });

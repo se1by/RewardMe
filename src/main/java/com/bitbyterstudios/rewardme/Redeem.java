@@ -1,5 +1,9 @@
 package com.bitbyterstudios.rewardme;
 
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+
 import java.io.File;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -7,10 +11,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
-
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 
 public class Redeem {
 	
@@ -31,24 +31,22 @@ public class Redeem {
 		UUID uuid = UUID.randomUUID();
 		String exDate = dateCalc(duration);
 
-		plugin.getRedeemConfig().set(name + ".Code", uuid.toString());
-		plugin.getRedeemConfig().set(name + ".Expiration", exDate);
-		plugin.getRedeemConfig().set(name + ".Command", "give %USER 1 1");
-		plugin.saveRedeemConfig();
+		plugin.getConfigManager().getRedeemConfig().set(name + ".Code", uuid.toString());
+		plugin.getConfigManager().getRedeemConfig().set(name + ".Expiration", exDate);
+		plugin.getConfigManager().getRedeemConfig().setAndSave(name + ".Command", "give %USER 1 1");
 		return uuid;
 	}
 	
 	public UUID generateCode() {
 		UUID uuid = UUID.randomUUID();
-		plugin.getRedeemConfig().set(name + ".Code", uuid.toString());
-		plugin.getRedeemConfig().set(name + ".Expiration", "once");
-		plugin.getRedeemConfig().set(name + ".Command", "give %USER 1 1");
-		plugin.saveRedeemConfig();
+		plugin.getConfigManager().getRedeemConfig().set(name + ".Code", uuid.toString());
+		plugin.getConfigManager().getRedeemConfig().set(name + ".Expiration", "once");
+		plugin.getConfigManager().getRedeemConfig().setAndSave(name + ".Command", "give %USER 1 1");
 		return uuid;
 	}
 	
 	public String useCode(Player p) {
-		FileConfiguration redeemCfg = plugin.getRedeemConfig();
+		FileConfiguration redeemCfg = plugin.getConfigManager().getRedeemConfig();
 
 		String date = redeemCfg.getString(name + ".Expiration");
 		if (date == null) {
@@ -56,7 +54,7 @@ public class Redeem {
 		} else if(date.equalsIgnoreCase("once")) {
 			String cmd = redeemCfg.getString(name + ".Command");
 			redeemCfg.set(name, null);
-			plugin.saveRedeemConfig();
+			plugin.getConfigManager().getRedeemConfig().save();
 			return cmd;
 		}
 		
@@ -78,7 +76,7 @@ public class Redeem {
 		if (!redeemCfg.getBoolean(name + ".UsedBy." + p.getUniqueId().toString())) {
 			if (result <= 0) {
 				redeemCfg.set(name + ".UsedBy." + p.getUniqueId().toString(), true);
-				plugin.saveRedeemConfig();
+				plugin.getConfigManager().getRedeemConfig().save();
 				return redeemCfg.getString(name + ".Command");
 			} else {
 				return "outdated";

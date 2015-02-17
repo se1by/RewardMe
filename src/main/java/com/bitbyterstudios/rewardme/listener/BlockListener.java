@@ -19,7 +19,7 @@ public class BlockListener implements Listener {
 		
 		String blockType = event.getBlock().getType().toString();			
 		Player player = event.getPlayer();
-		int minedBlocks = plugin.getPlayersConfig().getInt(player.getUniqueId().toString() + ".MinedBlocks."
+		int minedBlocks = plugin.getConfigManager().getPlayerConfig().getInt(player.getUniqueId().toString() + ".MinedBlocks."
 				+ blockType) + 1;
 		int neededBlocks = plugin.getConfig().getInt("MiningReward." + blockType
 				+ ".NeededBlocks");
@@ -31,15 +31,13 @@ public class BlockListener implements Listener {
 			if (command != null) {
 				command = RewardMe.replaceUser(command, player);
 				RewardMe.executeCmd(command);
-				plugin.getPlayersConfig().set(
+				plugin.getConfigManager().getPlayerConfig().setAndSave(
 						player.getUniqueId().toString() + ".MinedBlocks." + blockType, 0);
 			}
 		} else {
-			plugin.getPlayersConfig().set(player.getUniqueId().toString() + ".MinedBlocks." + blockType,
+			plugin.getConfigManager().getPlayerConfig().setAndSave(player.getUniqueId().toString() + ".MinedBlocks." + blockType,
 					minedBlocks);
 		}
-		
-		plugin.savePlayersConfig();
-	}
+    }
 
 }

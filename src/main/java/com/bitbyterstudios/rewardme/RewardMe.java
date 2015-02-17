@@ -9,8 +9,6 @@ import com.puzlinc.messenger.Messenger;
 import net.gravitydevelopment.updater.Updater;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -18,20 +16,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
-import java.util.logging.Level;
 
 public class RewardMe extends JavaPlugin {
 	
-	private FileConfiguration players;
-	private FileConfiguration points;
-	private FileConfiguration redeem;
-	private FileConfiguration rewards;
-    private FileConfiguration nameConverter;
-	private File playersFile;
-	private File pointsFile;
-	private File redeemFile;
-	private File rewardsFile;
-    private File nameConverterFile;
+	private ConfigManager configManager;
     private boolean shouldNotify;
     private File pluginFile;
 
@@ -39,6 +27,7 @@ public class RewardMe extends JavaPlugin {
 	
 	public void onEnable(){
 		saveDefaultConfig();
+        configManager = new ConfigManager(this);
 
         messenger = new Messenger(this);
         if (getConfig().contains("locale")) {
@@ -118,104 +107,8 @@ public class RewardMe extends JavaPlugin {
         return messenger;
     }
 
-    public FileConfiguration getPlayersConfig(){
-		if (players == null) {
-			playersFile = new File(getDataFolder(), "players.yml");
-			if (!playersFile.exists()) {
-				saveResource("players.yml", false);
-			}
-			players = YamlConfiguration.loadConfiguration(playersFile);
-		}
-		return players;
-	}
-	
-	public void savePlayersConfig(){
-		try {
-            getPlayersConfig().save(playersFile);
-			players = YamlConfiguration.loadConfiguration(playersFile);
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, "Could not save config to " + playersFile, ex);
-        }
-	}
-	
-	public FileConfiguration getPointsConfig(){
-		if (points == null) {
-			pointsFile = new File(getDataFolder(), "points.yml");
-			if (!pointsFile.exists()) {
-				saveResource("points.yml", false);
-			}
-			points = YamlConfiguration.loadConfiguration(pointsFile);
-		}
-		return points;
-	}
-	
-	public void savePointsConfig(){
-		try {
-            getPointsConfig().save(pointsFile);
-			points = YamlConfiguration.loadConfiguration(pointsFile);
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, "Could not save config to " + pointsFile, ex);
-        }
-	}
-	
-	public FileConfiguration getRedeemConfig(){
-		if (redeem == null) {
-			redeemFile = new File(getDataFolder(), "redeem.yml");
-			if(!redeemFile.exists()){
-				saveResource("redeem.yml", false);
-			}
-			redeem = YamlConfiguration.loadConfiguration(redeemFile);
-		}
-		return redeem;
-	}
-
-    public void saveRedeemConfig(){
-        try {
-            getRedeemConfig().save(redeemFile);
-            redeem = YamlConfiguration.loadConfiguration(redeemFile);
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, "Could not save config to " + redeemFile, ex);
-        }
-    }
-
-    public FileConfiguration getRewardsConfig(){
-        if (rewards == null) {
-            rewardsFile = new File(getDataFolder(), "rewards.yml");
-            if(!rewardsFile.exists()){
-                saveResource("rewards.yml", false);
-            }
-            rewards = YamlConfiguration.loadConfiguration(rewardsFile);
-        }
-        return rewards;
-    }
-
-    public void saveRewardsConfig(){
-        try {
-            getRewardsConfig().save(rewardsFile);
-            rewards = YamlConfiguration.loadConfiguration(rewardsFile);
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, "Could not save config to " + rewardsFile, ex);
-        }
-    }
-
-    public FileConfiguration getNameConverterConfig(){
-        if (nameConverter == null) {
-            nameConverterFile = new File(getDataFolder(), "nameConverter.yml");
-            if(!nameConverterFile.exists()){
-                saveResource("nameConverter.yml", false);
-            }
-            nameConverter = YamlConfiguration.loadConfiguration(nameConverterFile);
-        }
-        return nameConverter;
-    }
-
-    public void saveNameConverterConfig(){
-        try {
-            getNameConverterConfig().save(nameConverterFile);
-            nameConverter = YamlConfiguration.loadConfiguration(nameConverterFile);
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, "Could not save config to " + nameConverterFile, ex);
-        }
+    public ConfigManager getConfigManager() {
+        return configManager;
     }
 
     public boolean shouldNotify() {
@@ -248,8 +141,8 @@ public class RewardMe extends JavaPlugin {
         if (Bukkit.getPlayerExact(name) != null) {
             return Bukkit.getPlayerExact(name).getUniqueId();
         }
-        if (getNameConverterConfig().contains(name)) {
-            return UUID.fromString(getNameConverterConfig().getString(name));
+        if (configManager.getNameConverterConfig().contains(name)) {
+            return UUID.fromString(configManager.getNameConverterConfig().getString(name));
         }
         Bukkit.getScheduler().runTaskAsynchronously(this, new Runnable() {
             @Override
@@ -262,8 +155,7 @@ public class RewardMe extends JavaPlugin {
                     Bukkit.getScheduler().runTask(RewardMe.this, new Runnable() {
                         @Override
                         public void run() {
-                            getNameConverterConfig().set(name, uuid.toString());
-                            saveNameConverterConfig();
+                            configManager.getNameConverterConfig().setAndSave(name, uuid.toString());
                         }
                     });
                 } catch (Exception e) {

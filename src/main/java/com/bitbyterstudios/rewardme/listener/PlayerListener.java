@@ -28,9 +28,9 @@ public class PlayerListener implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
 
-        if (!plugin.getNameConverterConfig().getString(player.getName(), "").equals(player.getUniqueId().toString())) {
-            plugin.getNameConverterConfig().set(player.getName(), player.getUniqueId().toString());
-            plugin.saveNameConverterConfig();
+        if (!plugin.getConfigManager()
+                .getNameConverterConfig().getString(player.getName(), "").equals(player.getUniqueId().toString())) {
+            plugin.getConfigManager().getNameConverterConfig().setAndSave(player.getName(), player.getUniqueId().toString());
         }
 
         if (player.hasPermission("RewardMe.givePoints") && plugin.shouldNotify()) {
@@ -41,7 +41,7 @@ public class PlayerListener implements Listener {
 			return;
 		}
 		
-		int lastLogin = plugin.getPlayersConfig().
+		int lastLogin = plugin.getConfigManager().getPlayerConfig().
 				getInt(player.getUniqueId().toString() + ".LastLogin");
 		
 		if (lastLogin == date) {
@@ -87,8 +87,7 @@ public class PlayerListener implements Listener {
 		RewardMe.executeCmd(cmd);
         player.sendMessage(ChatColor.GREEN + "[RewardMe] " + ChatColor.GOLD + message);
 
-		plugin.getPlayersConfig().set(player.getUniqueId().toString() + ".LastLogin", date);
-		plugin.savePlayersConfig();
+		plugin.getConfigManager().getPlayerConfig().setAndSave(player.getUniqueId().toString() + ".LastLogin", date);
 	}
 
 }
