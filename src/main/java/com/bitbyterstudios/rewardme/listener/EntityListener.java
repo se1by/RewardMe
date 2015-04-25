@@ -1,6 +1,7 @@
 package com.bitbyterstudios.rewardme.listener;
 
 import com.bitbyterstudios.rewardme.RewardMe;
+import org.bukkit.GameMode;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,7 +20,7 @@ public class EntityListener implements Listener {
 	public void onEntityDeath(EntityDeathEvent event) {
 		final LivingEntity le = event.getEntity();
 		
-		if (le.getKiller() == null) {
+		if (le.getKiller() == null || le.getKiller().getGameMode() == GameMode.CREATIVE) {
 			return;
 		}
 		
