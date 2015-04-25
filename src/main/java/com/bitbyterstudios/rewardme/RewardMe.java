@@ -125,7 +125,11 @@ public class RewardMe extends JavaPlugin {
 	
 	public static boolean executeCmd(String commands){
 		try{
-			String[] cmdSplit = commands.split(",,");
+            if (commands.contains(",,")) {
+                System.err.println("Commands \"" + commands + "\" contain double comma's, please change them to single!");
+                commands = commands.replaceAll(",,", ",");
+            }
+			String[] cmdSplit = commands.split(",");
 			for (String command : cmdSplit) {
 				CommandSender cs = Bukkit.getServer().getConsoleSender();
 			    Bukkit.getServer().dispatchCommand(cs, command);
