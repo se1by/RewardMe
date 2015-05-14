@@ -41,7 +41,9 @@ public class Messenger {
     public static final String REWARD_UNKNOWN = "reward.unknown";
     public static final String REWARD_GIVEN = "reward.given";
     public static final String REWARD_ERROR = "reward.error";
+    public static final String REWARD_NO_PERM = "reward.no_permission";
     public static final String REWARD_NOT_ENOUGH_POINTS = "reward.not_enough_points";
+    public static final String REWARD_SIGN_USED = "reward.sign_used";
     public static final String REDEEM_NAME_TAKEN = "redeem.generate.name_taken";
     public static final String REDEEM_CODE_INFO = "redeem.generate.code_info";
     public static final String REDEEM_USED = "redeem.use.already_used";
@@ -49,12 +51,13 @@ public class Messenger {
     public static final String REDEEM_ERROR = "redeem.use.error";
     public static final String REDEEM_UNKNOWN = "redeem.use.unknown_code";
     public static final String UPDATE_SUCCESS = "update.success";
-    public static final String UPDATE_FAIL = "update.fail";
 
+    public static final String UPDATE_FAIL = "update.fail";
     public static final String HELP_USER = "help.user";
     public static final String HELP_ADMIN = "help.admin";
     public static final String INSUFFICIENT_PERMISSIONS = "insufficient_permissions";
     public static final String CONVERSION_DONE = "conversion_done";
+    public static final String SIGN_CREATE_NO_PERM = "sign_create_no_perm";
     // End keys
 
     private Map<String, Object> defaults = new HashMap<String, Object>(){{
@@ -62,11 +65,13 @@ public class Messenger {
         put(POINTS_INFO, "&6%s got %s points!");
         put(POINTS_RECEIVED, "&6You received %s points from %s!");
         put(POINTS_GIVEN, "&6%s points given!");
-        put(REWARD_INFO, Arrays.asList("&6Type in /reward buy %s to get %s.", "&6Price: %s points."));
+        put(REWARD_INFO, Arrays.asList("&6Type in /reward buy %s to get %s.", "&6Price: %s points.", "Needed permission: %s"));
         put(REWARD_UNKNOWN, "&cThere is no reward called %s!");
         put(REWARD_GIVEN, "&6Reward %s given!");
         put(REWARD_ERROR, Arrays.asList("&cAn error occured!", "&6Please inform an admin!"));
+        put(REWARD_NO_PERM, "&cYou don't have permission to buy this reward!");
         put(REWARD_NOT_ENOUGH_POINTS, "&cYou don't have enough points!");
+        put(REWARD_SIGN_USED, "&cYou already used this sign!");
         put(REDEEM_NAME_TAKEN, "&cThis name is already taken!");
         put(REDEEM_CODE_INFO, Arrays.asList("&6Your redeemcode is %s", "Please change the default reward-command in redeem.yml"));
         put(REDEEM_USED, "&cYou already used that code!");
@@ -80,6 +85,7 @@ public class Messenger {
         put(HELP_ADMIN, "/points <user> <amount> to give <user> <amount> points");
         put(INSUFFICIENT_PERMISSIONS, "&cInsufficient permissions!");
         put(CONVERSION_DONE, "&6Conversion done!");
+        put(SIGN_CREATE_NO_PERM, "&cYou are not allowed to create [RewardMe] signs!");
     }};
 
     private String prefix = ChatColor.GREEN + "[RewardMe] " + ChatColor.GOLD;

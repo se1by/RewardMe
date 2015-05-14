@@ -1,6 +1,6 @@
 package com.bitbyterstudios.rewardme;
 
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -9,7 +9,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LoggingYamlConfig extends YamlConfiguration {
-    private FileConfiguration config;
     private File file;
     private Logger logger;
 
@@ -18,8 +17,21 @@ public class LoggingYamlConfig extends YamlConfiguration {
     }
 
     public LoggingYamlConfig(File file, Logger logger) {
+        super();
         this.file = file;
-        config = YamlConfiguration.loadConfiguration(file);
+        try {
+            if (file.exists()) {
+                load(file);
+            } else {
+                logger.warning("File  " + file.getAbsolutePath() + " does not exist!");
+            }
+        } catch (IOException e) {
+            logger.severe("Could not load " + file.getAbsolutePath());
+            e.printStackTrace();
+        } catch (InvalidConfigurationException e) {
+            logger.severe("Invalid configuration for file " + file.getAbsolutePath());
+            e.printStackTrace();
+        }
         this.logger = logger;
     }
 
@@ -30,7 +42,7 @@ public class LoggingYamlConfig extends YamlConfiguration {
 
     public void save() {
         try {
-            config.save(file);
+            save(file);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Could not save config " + file.getName(), e);
         }

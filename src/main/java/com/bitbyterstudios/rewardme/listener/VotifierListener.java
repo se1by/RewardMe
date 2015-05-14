@@ -1,9 +1,9 @@
 package com.bitbyterstudios.rewardme.listener;
 
 import com.bitbyterstudios.rewardme.RewardMe;
-import org.bukkit.event.Listener;
-
+import com.bitbyterstudios.rewardme.Util;
 import com.vexsoftware.votifier.model.VotifierEvent;
+import org.bukkit.event.Listener;
 
 public class VotifierListener implements Listener {
 
@@ -20,7 +20,7 @@ public class VotifierListener implements Listener {
 		final String user = event.getVote().getUsername();
 		String cmd = plugin.getConfig().getString("Vote.Command");
 		cmd = cmd.replaceAll("%USER", user);
-		RewardMe.executeCmd(cmd);
+		Util.executeCmd(cmd);
 	}
 
 }

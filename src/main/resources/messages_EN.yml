@@ -12,6 +12,7 @@ reward:
     - "&cAn error occured!"
     - "&6Please inform an admin!"
   not_enough_points: "&cYou don't have enough points!"
+  unknown: "&cUnknown reward %s!"
 redeem:
   generate:
     name_taken: "&cThis name is already taken!"

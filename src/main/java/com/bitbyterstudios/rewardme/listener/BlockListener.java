@@ -1,6 +1,7 @@
 package com.bitbyterstudios.rewardme.listener;
 
 import com.bitbyterstudios.rewardme.RewardMe;
+import com.bitbyterstudios.rewardme.Util;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -31,8 +32,8 @@ public class BlockListener implements Listener {
 					+ ".Command");
 
 			if (command != null) {
-				command = RewardMe.replaceUser(command, player);
-				RewardMe.executeCmd(command);
+				command = Util.replaceUser(command, player);
+				Util.executeCmd(command);
 				plugin.getConfigManager().getPlayerConfig().setAndSave(
 						player.getUniqueId().toString() + ".MinedBlocks." + blockType, 0);
 			}

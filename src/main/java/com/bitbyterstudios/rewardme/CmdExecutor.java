@@ -101,11 +101,10 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void showRewards(CommandSender sender) {
-		Set<String> allRewards = plugin.getConfigManager().getRewardConfig().getKeys(false);
-		for (String reward : allRewards) {
-			String desc = plugin.getConfigManager().getRewardConfig().getString(reward + ".Description");
-			int price = plugin.getConfigManager().getRewardConfig().getInt(reward + ".Price");
-            plugin.getMessenger().send(Messenger.REWARD_INFO,sender, reward, desc, String.valueOf(price));
+		Collection<Reward> rewards = plugin.getRewardManager().getRewards();
+		for (Reward reward : rewards) {
+            plugin.getMessenger().send(Messenger.REWARD_INFO,sender, reward.getName(),
+                    reward.getDescription(), String.valueOf(reward.getPrice()), reward.getPerm());
 		}
 	}
 
@@ -122,29 +121,11 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void buyReward(Player player, String item) {
-        if (!plugin.getConfigManager().getRewardConfig().contains(item)) {
+        if (!plugin.getRewardManager().hasReward(item)) {
             plugin.getMessenger().send(Messenger.REWARD_UNKNOWN, player, item);
             return;
         }
-		String command = plugin.getConfigManager().getRewardConfig().getString(item + ".Command");
-		command = RewardMe.replaceUser(command, player);
-		int price = plugin.getConfigManager().getRewardConfig().getInt(item + ".Price");
-		int pPoints = plugin.getConfigManager().getPointConfig().getInt(player.getUniqueId().toString());
-
-		if (pPoints >= price) {
-			boolean success = RewardMe.executeCmd(command);
-
-			if (success) {
-				plugin.getConfigManager().getPointConfig().setAndSave(player.getUniqueId().toString(),
-                        pPoints - price);
-
-                plugin.getMessenger().send(Messenger.REWARD_GIVEN, player, item);
-			} else {
-                plugin.getMessenger().send(Messenger.REWARD_ERROR, player);
-			}
-		} else {
-            plugin.getMessenger().send(Messenger.REWARD_NOT_ENOUGH_POINTS, player);
-		}
+		plugin.getRewardManager().getReward(item).buy(player, false);
 	}
 
 	private void handleGenRedeem(CommandSender sender, String[] args) {
@@ -179,13 +160,13 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void useRedeem(Player player, String code) {
-        if (!RewardMe.isUUID(code)) {
+        if (!Util.isUUID(code)) {
             plugin.getMessenger().send(Messenger.REDEEM_ERROR, player);
             return;
         }
 		Redeem redeem = new Redeem(UUID.fromString(code), plugin);
 		String command = redeem.useCode(player);
-		command = RewardMe.replaceUser(command, player);
+		command = Util.replaceUser(command, player);
 		if (command.equalsIgnoreCase("used")) {
             plugin.getMessenger().send(Messenger.REDEEM_USED, player);
 		} else if (command.equalsIgnoreCase("outdated")) {
@@ -195,7 +176,7 @@ public class CmdExecutor implements CommandExecutor {
 		} else if (command.equalsIgnoreCase("unknown")) {
             plugin.getMessenger().send(Messenger.REDEEM_UNKNOWN, player);
 		} else {
-			boolean success = RewardMe.executeCmd(command);
+			boolean success = Util.executeCmd(command);
 			if (!success) {
                 plugin.getMessenger().send(Messenger.REDEEM_ERROR, player);
 			}
@@ -244,7 +225,7 @@ public class CmdExecutor implements CommandExecutor {
                         @Override
                         public void run() {
                             for (String key : plugin.getConfigManager().getPlayerConfig().getKeys(false)) {
-                                if (RewardMe.isUUID(key)) {
+                                if (Util.isUUID(key)) {
                                     String convertedKey = getKey(converted, key);
                                     if (convertedKey == null) { continue; }
                                     for (String block : plugin.getConfigManager().getPlayerConfig()
@@ -271,7 +252,7 @@ public class CmdExecutor implements CommandExecutor {
                                 }
                             }
                             for (String key : plugin.getConfigManager().getPointConfig().getKeys(false)) {
-                                if (RewardMe.isUUID(key)) {
+                                if (Util.isUUID(key)) {
                                     String convertedKey = getKey(converted, key);
                                     if (convertedKey == null) { continue; }
                                     plugin.getConfigManager().getPointConfig().setAndSave(
@@ -287,7 +268,7 @@ public class CmdExecutor implements CommandExecutor {
                             for (String key : plugin.getConfigManager().getRedeemConfig().getKeys(false)) {
                                 for (String userKey : plugin.getConfigManager().getRedeemConfig()
                                         .getConfigurationSection(key + ".UsedBy").getKeys(false)) {
-                                    if (RewardMe.isUUID(userKey)) { continue; }
+                                    if (Util.isUUID(userKey)) { continue; }
                                     plugin.getConfigManager().getRedeemConfig().setAndSave(key + ".UsedBy." + converted.get(userKey),
                                             plugin.getConfigManager().getRedeemConfig().getConfigurationSection(key + ".UsedBy." + userKey));
                                     plugin.getConfigManager().getRedeemConfig().setAndSave(key + ".UsedBy." + userKey, null);
@@ -305,7 +286,7 @@ public class CmdExecutor implements CommandExecutor {
 
     private Set<String> removeUUIDs(Set<String> collection) {
         for (String s : collection) {
-            if (RewardMe.isUUID(s)) {
+            if (Util.isUUID(s)) {
                 collection.remove(s);
             }
         }

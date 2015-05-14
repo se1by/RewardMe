@@ -8,8 +8,6 @@ import com.evilmidget38.UUIDFetcher;
 import com.puzlinc.messenger.Messenger;
 import net.gravitydevelopment.updater.Updater;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -20,6 +18,7 @@ import java.util.UUID;
 public class RewardMe extends JavaPlugin {
 	
 	private ConfigManager configManager;
+    private RewardManager rewardManager;
     private boolean shouldNotify;
     private File pluginFile;
 
@@ -28,6 +27,7 @@ public class RewardMe extends JavaPlugin {
 	public void onEnable(){
 		saveDefaultConfig();
         configManager = new ConfigManager(this);
+        rewardManager = new RewardManager(configManager.getRewardConfig(), this);
 
         messenger = new Messenger(this);
         if (getConfig().contains("locale")) {
@@ -111,6 +111,10 @@ public class RewardMe extends JavaPlugin {
         return configManager;
     }
 
+    public RewardManager getRewardManager() {
+        return rewardManager;
+    }
+
     public boolean shouldNotify() {
         return shouldNotify;
     }
@@ -118,28 +122,6 @@ public class RewardMe extends JavaPlugin {
     public File getPluginFile() {
         return pluginFile;
     }
-
-    public static String replaceUser(String msg, Player player){
-		return msg.replace("%USER", player.getName());
-	}
-	
-	public static boolean executeCmd(String commands){
-		try{
-            if (commands.contains(",,")) {
-                System.err.println("Commands \"" + commands + "\" contain double comma's, please change them to single!");
-                commands = commands.replaceAll(",,", ",");
-            }
-			String[] cmdSplit = commands.split(",");
-			for (String command : cmdSplit) {
-				CommandSender cs = Bukkit.getServer().getConsoleSender();
-			    Bukkit.getServer().dispatchCommand(cs, command);
-			}
-			return true;
-		  }catch(Exception e){
-			e.printStackTrace();
-		  }
-		return false;
-	}
 
     public UUID uuidFromName(final String name) {
         if (Bukkit.getPlayerExact(name) != null) {
@@ -170,7 +152,4 @@ public class RewardMe extends JavaPlugin {
         return null;
     }
 
-    public static boolean isUUID(String s) {
-        return s.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
-    }
 }

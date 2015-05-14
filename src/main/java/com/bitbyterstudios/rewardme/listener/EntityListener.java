@@ -1,6 +1,7 @@
 package com.bitbyterstudios.rewardme.listener;
 
 import com.bitbyterstudios.rewardme.RewardMe;
+import com.bitbyterstudios.rewardme.Util;
 import org.bukkit.GameMode;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -33,8 +34,8 @@ public class EntityListener implements Listener {
                     .getInt(killer.getUniqueId().toString() + ".Kills." + leName) + 1;
 			
 			if (kills >= neededKills) {
-				command = RewardMe.replaceUser(command, killer);
-				RewardMe.executeCmd(command);
+				command = Util.replaceUser(command, killer);
+				Util.executeCmd(command);
 				plugin.getConfigManager().getPlayerConfig()
                         .setAndSave(killer.getUniqueId().toString() + ".Kills." + leName, 0);
 			} else {
