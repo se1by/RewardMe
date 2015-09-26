@@ -42,7 +42,7 @@ public class Reward {
         return price <= plugin.getConfigManager().getPointConfig().getInt(player.getUniqueId().toString());
     }
 
-    public boolean buy(Player player, boolean ignorePerm) {
+    public boolean buy(Player player, boolean ignorePerm, boolean isFree) {
         if (!ignorePerm && !perm.isEmpty() && !player.hasPermission(perm)) {
             plugin.getMessenger().send(Messenger.REWARD_NO_PERM, player);
             return false;
@@ -50,7 +50,7 @@ public class Reward {
 
         int pPoints = plugin.getConfigManager().getPointConfig().getInt(player.getUniqueId().toString());
 
-        if (pPoints >= price) {
+        if (pPoints >= price || isFree) {
             for (String command : commands) {
                 boolean result = plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(),
                         command.replace("%USER", player.getName()));
@@ -58,7 +58,9 @@ public class Reward {
                     plugin.getLogger().warning("Could not properly execute command " + command);
                 }
             }
-            plugin.getConfigManager().getPointConfig().setAndSave(player.getUniqueId().toString(), pPoints - price);
+            if (!isFree) {
+                plugin.getConfigManager().getPointConfig().setAndSave(player.getUniqueId().toString(), pPoints - price);
+            }
             plugin.getMessenger().send(Messenger.REWARD_GIVEN, player, name);
             return true;
         } else {

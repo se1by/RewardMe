@@ -28,7 +28,7 @@ public class PlayerListener implements Listener {
 	
 	public PlayerListener(RewardMe plugin){
 		this.plugin = plugin;
-		date = Calendar.getInstance().get(5);
+		date = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
 		loggedIn = new HashMap<String, Boolean>();
 	}
 	
@@ -107,7 +107,11 @@ public class PlayerListener implements Listener {
 			return;
 		}
 		Sign sign = (Sign) event.getClickedBlock().getState();
-		if (!Util.strip(sign.getLine(0)).equals("[RewardMe]")) {
+        String[] strippedLines = new String[sign.getLines().length];
+        for (int i = 0; i < sign.getLines().length; i++) {
+            strippedLines[i] = Util.strip(sign.getLine(i));
+        }
+		if (!strippedLines[0].contains("[RewardMe]")) {
 			return;
 		}
 		if (!event.getPlayer().hasPermission("RewardMe.sign.use")) {
@@ -115,30 +119,29 @@ public class PlayerListener implements Listener {
 			return;
 		}
 
-		if (!plugin.getConfigManager().getSignConfig().getBoolean(sign.getLocation().toString() + ".multi_use", false) &&
-				plugin.getConfigManager().getSignConfig().contains(
-						sign.hashCode() + "." + event.getPlayer().getUniqueId().toString())) {
+		if (!strippedLines[0].startsWith("!") && plugin.getConfigManager().getSignConfig().contains(
+						sign.getLocation().toString() + "." + event.getPlayer().getUniqueId().toString())) {
 			plugin.getMessenger().send(Messenger.REWARD_SIGN_USED, event.getPlayer());
 			return;
 		}
 
-		String rewardName = Util.strip(sign.getLine(1));
-		if (!plugin.getRewardManager().hasReward(rewardName)) {
-			plugin.getLogger().warning("Sign at " + sign.getLocation() + " references reward \"" + rewardName + "\", but that reward doesn't exist!");
-			plugin.getMessenger().send(Messenger.REWARD_UNKNOWN, event.getPlayer(), rewardName);
+		if (!plugin.getRewardManager().hasReward(strippedLines[1])) {
+			plugin.getLogger().warning("Sign at " + sign.getLocation() + " references reward \"" + strippedLines[1]
+                    + "\", but that reward doesn't exist!");
+			plugin.getMessenger().send(Messenger.REWARD_UNKNOWN, event.getPlayer(), strippedLines[1]);
 			return;
 		}
 
-		Reward reward = plugin.getRewardManager().getReward(rewardName);
-		reward.buy(event.getPlayer(), "noperm".equals(sign.getLine(2)));
+		Reward reward = plugin.getRewardManager().getReward(strippedLines[1]);
+		reward.buy(event.getPlayer(), strippedLines[2].contains("noperm"), strippedLines[0].endsWith("!"));
 
 		plugin.getConfigManager().getSignConfig().setAndSave(
-				sign.hashCode() + "." + event.getPlayer().getUniqueId().toString(), true);
+				sign.getLocation() + "." + event.getPlayer().getUniqueId().toString(), true);
 	}
 
 	@EventHandler
 	public void onSignChange(SignChangeEvent event) {
-		if ("[RewardMe]".equals(Util.strip(event.getLine(0))) && !event.getPlayer().hasPermission("RewardMe.sign.create")) {
+		if (Util.strip(event.getLine(0)).contains("[RewardMe]") && !event.getPlayer().hasPermission("RewardMe.sign.create")) {
 			event.setCancelled(true);
 			plugin.getMessenger().send(Messenger.SIGN_CREATE_NO_PERM, event.getPlayer());
 		}

@@ -64,10 +64,6 @@ public class CmdExecutor implements CommandExecutor {
 	}
 
 	private void showPoints(CommandSender sendTo, String toShow) {
-		String pre = toShow;
-		if(toShow.equals(sendTo.getName())){
-			pre = "You";
-		}
         UUID toShowUUID = plugin.uuidFromName(toShow);
         if (toShowUUID == null) {
             plugin.getMessenger().send(Messenger.NOT_CACHED, sendTo, toShow);
@@ -125,7 +121,7 @@ public class CmdExecutor implements CommandExecutor {
             plugin.getMessenger().send(Messenger.REWARD_UNKNOWN, player, item);
             return;
         }
-		plugin.getRewardManager().getReward(item).buy(player, false);
+		plugin.getRewardManager().getReward(item).buy(player, false, false);
 	}
 
 	private void handleGenRedeem(CommandSender sender, String[] args) {
@@ -138,7 +134,7 @@ public class CmdExecutor implements CommandExecutor {
 			return;
 		}
 		Redeem r = new Redeem(name, plugin);
-		UUID code = null;
+		UUID code;
 		if (args[1].equalsIgnoreCase("once")) {
 			code = r.generateCode();
 		} else {
@@ -203,6 +199,8 @@ public class CmdExecutor implements CommandExecutor {
 		}
 	}
 
+    //Damn bitchy monster method
+    //Might use java8 and streams for that
     private void convert(final CommandSender sender) {
         if (!sender.hasPermission("RewardMe.givePoints")) {
             plugin.getMessenger().send(Messenger.INSUFFICIENT_PERMISSIONS, sender);
